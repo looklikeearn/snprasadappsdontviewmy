@@ -1,89 +1,372 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/11.0.1/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/11.0.1/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.0.1/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LookLike - Home</title>
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f9f9f9; 
+            overflow-x: hidden; /* Prevent horizontal scroll when menu is open */
+            padding-bottom: 60px; /* Space for bottom navigation */
         }
-      });
-    </script>
-  </body>
+        header { 
+            background-color: #ffffff; 
+            color: black; 
+            padding: 3px 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000; /* Ensure header is above other elements */
+        }
+        h1 { 
+            margin: 0; 
+            font-size: 24px; 
+        }
+        .logo .look {
+            color: #8B4513; /* SaddleBrown */
+            font-weight: bold;
+        }
+        .logo .like {
+            color: #FF0000; /* Red */
+            font-weight: bold;
+        }
+        /* Search icon styles */
+        .search-icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #000;
+            margin-left: 16px; /* Space from logo */
+            transition: color 0.2s ease;
+        }
+        .search-icon:hover {
+            color: #FF0000; /* Change color on hover */
+        }
+
+        .video-list { 
+            padding: 80px 20px 20px; /* Top padding to account for fixed header */
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        .video-item { 
+            display: flex; 
+            flex-direction: column; 
+            cursor: pointer; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            background-color: #fff; 
+            transition: box-shadow 0.3s ease;
+        }
+        .video-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+        }
+        .video-thumbnail img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        .video-info { 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+        }
+        .video-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #000;
+        }
+        .video-meta { 
+            font-size: 14px; 
+            color: #606060; 
+        }
+
+        /* Right-side Navigation Menu Styles */
+        .nav-menu {
+            position: fixed;
+            top: 0;
+            right: -250px; /* Hidden by default */
+            width: 250px;
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1100; /* Above header */
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px; /* Space for header */
+        }
+        .nav-menu.active {
+            right: 0;
+        }
+        .nav-menu a {
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #000;
+            font-size: 18px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+        }
+        .nav-menu a:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            z-index: 1050; /* Between header and nav-menu */
+        }
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Menu Button Styles */
+        .menu-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        /* Bottom Navigation Styles */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #ffffff;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000; /* Above main content */
+        }
+        .bottom-nav a {
+            text-decoration: none;
+            color: #606060;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+        .bottom-nav a.active,
+        .bottom-nav a:hover {
+            color: #FF0000; /* LookLike red color */
+        }
+        .bottom-nav a i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .channel-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 10px;
+            }
+            /* Removed search-bar styles */
+            .menu-button {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <h1><span class="look">Look</span> <span class="like">Like</span></h1>
+    </div>
+    <!-- Search Icon -->
+    <a href="search.html" class="search-icon">
+        <i class="fas fa-search"></i>
+    </a>
+    <button class="menu-button" id="menu-button">&#9776;</button> <!-- Hamburger Icon -->
+</header>
+
+<!-- Right-side Navigation Menu -->
+<nav class="nav-menu" id="nav-menu">
+    <a href="competition.html">Competition</a>
+    <a href="poll.html">Vote</a>
+    <a href="live.html">Live</a>
+    <a href="subscription.html">Subscriptions</a>
+</nav>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<section class="video-list" id="video-list">
+    <!-- Video thumbnails will be dynamically inserted here -->
+</section>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav">
+    <a href="index.html" class="active">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+    </a>
+    <a href="shorts.html">
+        <i class="fas fa-video"></i>
+        <span>Shorts</span>
+    </a>
+    <a href="upload.html">
+        <i class="fas fa-upload"></i>
+        <span>Upload</span>
+    </a>
+    <a href="profile.html">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+</nav>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDebZ98GjmX8gxYC4jI_gmiChm7TzFqsMg",
+        authDomain: "test-d6f13.firebaseapp.com",
+        projectId: "test-d6f13",
+        storageBucket: "test-d6f13.appspot.com",
+        messagingSenderId: "1043978393185",
+        appId: "1:1043978393185:web:a40e50c013d7869b8cfc20",
+        measurementId: "G-VLTFR2GXGS"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const videoListElement = document.getElementById('video-list');
+    // Removed search input reference since it's removed
+    // const searchInput = document.getElementById('search');
+
+    // Function to load videos from Firestore
+    async function loadVideos() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "videos"));
+            if (querySnapshot.empty) {
+                console.log('No videos found.');
+                videoListElement.innerHTML = '<p>No videos available.</p>';
+                return;
+            }
+            querySnapshot.forEach(doc => {
+                const videoData = doc.data();
+                const { title, thumbnailUrl, views = '0', timeAgo = 'N/A', likes = '0' } = videoData;
+                displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes);
+            });
+        } catch (error) {
+            console.error('Error loading videos:', error);
+        }
+    }
+
+    // Function to display a video thumbnail on the page
+    function displayVideoThumbnail(videoId, title, thumbnailUrl, views, timeAgo, likes) {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'video-item';
+        videoItem.innerHTML = `
+            <div class="video-thumbnail">
+                <img src="${thumbnailUrl}" alt="${title}">
+            </div>
+            <div class="video-info">
+                <div class="video-title">${title}</div>
+                <div class="video-meta">
+                    <span>${views} views</span> • 
+                    <span>${timeAgo}</span> • 
+                    <span>${likes} likes</span>
+                </div>
+            </div>
+        `;
+        videoItem.addEventListener('click', () => {
+            window.location.href = `video.html?videoId=${videoId}`;
+        });
+        videoListElement.appendChild(videoItem);
+    }
+
+    // Check if the user is authenticated
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            loadVideos();  // Load video thumbnails if user is authenticated
+        } else {
+            videoListElement.innerHTML = '<p>You need to log in to view videos.</p>';
+        }
+    });
+
+    // Navigation Menu Functionality
+    const menuButton = document.getElementById('menu-button');
+    const navMenu = document.getElementById('nav-menu');
+    const overlay = document.getElementById('overlay');
+
+    // Function to open the navigation menu
+    function openMenu() {
+        navMenu.classList.add('active');
+        overlay.classList.add('active');
+    }
+
+    // Function to close the navigation menu
+    function closeMenu() {
+        navMenu.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+
+    // Event listener for menu button
+    menuButton.addEventListener('click', openMenu);
+
+    // Event listener for overlay click
+    overlay.addEventListener('click', closeMenu);
+
+    // Optional: Close menu when a link is clicked
+    const navLinks = navMenu.querySelectorAll('a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', closeMenu);
+    });
+</script>
+
+</body>
 </html>
