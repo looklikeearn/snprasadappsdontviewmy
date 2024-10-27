@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - LookLike</title>
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        .search-button {
+            padding: 10px;
+            border: none;
+            background-color: #FF0000; /* LookLike red color */
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        .search-results {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .video-item {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+            transition: box-shadow 0.3s ease;
+        }
+        .video-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16 / 9; /* 16:9 aspect ratio */
+            overflow: hidden;
+        }
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the area */
+        }
+        .video-info {
+            padding: 10px;
+        }
+        .previous-searches {
+            margin-top: 20px;
+        }
+        .previous-searches p {
+            margin: 0;
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <input type="text" id="search-input" class="search-input" placeholder="Search for videos...">
+    <button id="search-button" class="search-button">Search</button>
+</div>
+
+<div class="search-results" id="search-results">
+    <!-- Search results will be dynamically inserted here -->
+</div>
+
+<div class="previous-searches" id="previous-searches">
+    <!-- Previous searches will be displayed here -->
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, or } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+    authDomain: "look-like-earn.firebaseapp.com",
+    projectId: "look-like-earn",
+    storageBucket: "look-like-earn.appspot.com",
+    messagingSenderId: "58041508438",
+    appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+    measurementId: "G-CJM9MJTXEH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const searchButton = document.getElementById('search-button');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const previousSearches = document.getElementById('previous-searches');
+
+    // Store previous searches
+    let searches = JSON.parse(localStorage.getItem('searches')) || [];
+
+    function updatePreviousSearches() {
+        previousSearches.innerHTML = '';
+        searches.forEach(search => {
+            const searchItem = document.createElement('p');
+            searchItem.textContent = search;
+            searchItem.onclick = () => {
+                searchInput.value = search;
+                searchVideos(search);
+            };
+            previousSearches.appendChild(searchItem);
+        });
+    }
+
+    // Function to load videos based on search query
+    async function searchVideos(queryText) {
+        // Ensure case-insensitive search
+        const lowerCaseQuery = queryText.toLowerCase();
+
+        // Add the current search to localStorage if it's not already there
+        if (!searches.includes(queryText)) {
+            searches.push(queryText);
+            localStorage.setItem('searches', JSON.stringify(searches));
+            updatePreviousSearches();
+        }
+
+        try {
+            const q = query(collection(db, "videos"), 
+                or(
+                    where("title", "==", lowerCaseQuery), 
+                    where("description", "array-contains", lowerCaseQuery), // Search for a specific word in description
+                    where("category", "==", lowerCaseQuery),
+                    where("tags", "array-contains", lowerCaseQuery) // Assuming tags is an array
+                )
+            );
+
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                searchResults.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+            searchResults.innerHTML = ''; // Clear previous results
+            querySnapshot.forEach(doc => {
+                const videoData = doc.data();
+                const { title, thumbnailUrl, views = '0', timeAgo = 'N/A', likes = '0' } = videoData;
+                displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes);
+            });
+        } catch (error) {
+            console.error('Error searching videos:', error);
+        }
+    }
+
+    // Function to display a video thumbnail on the page
+    function displayVideoThumbnail(videoId, title, thumbnailUrl, views, timeAgo, likes) {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'video-item';
+        videoItem.innerHTML = `
+            <div class="video-thumbnail">
+                <img src="${thumbnailUrl}" alt="${title}">
+            </div>
+            <div class="video-info">
+                <div class="video-title">${title}</div>
+                <div class="video-meta">
+                    <span>${views} views</span> • 
+                    <span>${timeAgo}</span> • 
+                    <span>${likes} likes</span>
+                </div>
+            </div>
+        `;
+        videoItem.addEventListener('click', () => {
+            window.location.href = `video.html?videoId=${videoId}`;
+        });
+        searchResults.appendChild(videoItem);
+    }
+
+    // Event listener for search button
+    searchButton.addEventListener('click', () => {
+        const queryText = searchInput.value.trim();
+        if (queryText) {
+            searchVideos(queryText);
+        } else {
+            alert("Please enter a search term.");
+        }
+    });
+
+    // Optional: Search when pressing "Enter"
+    searchInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            searchButton.click();
+        }
+    });
+
+    // Update previous searches on page load
+    updatePreviousSearches();
+</script>
+
+</body>
+</html>

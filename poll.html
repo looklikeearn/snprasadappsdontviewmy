@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll Application</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .poll-container {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .add-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .add-btn:hover {
+            background-color: #218838;
+            transform: scale(1.1);
+        }
+        .question {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .answer {
+            margin-left: 20px;
+        }
+        .answer button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .answer button:hover {
+            background-color: #0056b3;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        #add-question-form {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        #add-question-form h2 {
+            margin-top: 0;
+        }
+        #add-question-form button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        #add-question-form button:hover {
+            background-color: #218838;
+        }
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="add-btn" onclick="toggleForm()">+</button>
+    <h1>Polls</h1>
+    <div id="polls" class="poll-container"></div>
+    
+    <div id="add-question-form">
+        <h2>Add Question</h2>
+        <div class="form-group">
+            <label for="question">Question:</label>
+            <input type="text" id="question" placeholder="Enter your question">
+        </div>
+        <div class="form-group">
+            <label for="answer1">Answer 1:</label>
+            <input type="text" id="answer1" placeholder="Enter answer 1">
+            <input type="file" id="image1" accept="image/*" onchange="previewImage(event, 'preview1')">
+            <div id="preview1" class="image-preview"></div>
+        </div>
+        <div class="form-group">
+            <label for="answer2">Answer 2:</label>
+            <input type="text" id="answer2" placeholder="Enter answer 2">
+            <input type="file" id="image2" accept="image/*" onchange="previewImage(event, 'preview2')">
+            <div id="preview2" class="image-preview"></div>
+        </div>
+        <button onclick="addQuestion()">Submit</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+    authDomain: "look-like-earn.firebaseapp.com",
+    projectId: "look-like-earn",
+    storageBucket: "look-like-earn.appspot.com",
+    messagingSenderId: "58041508438",
+    appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+    measurementId: "G-CJM9MJTXEH"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // Fetch polls from Firebase
+        function fetchPolls() {
+            database.ref('polls/').on('value', (snapshot) => {
+                const polls = snapshot.val();
+                const pollsContainer = document.getElementById('polls');
+                pollsContainer.innerHTML = '';
+
+                if (polls) {
+                    Object.keys(polls).forEach((pollId) => {
+                        const poll = polls[pollId];
+                        const pollElement = document.createElement('div');
+                        pollElement.classList.add('question');
+                        pollElement.innerHTML = `<strong>${poll.question}</strong><br>`;
+
+                        Object.keys(poll.answers).forEach((answerId) => {
+                            const answer = poll.answers[answerId];
+                            const imageUrl = answer.imageUrl ? `<img src="${answer.imageUrl}" style="width: 100px; height: 100px; border-radius: 5px;"/>` : '';
+                            pollElement.innerHTML += `<div class="answer">
+                                <button onclick="vote('${pollId}', '${answerId}')">${answer.text} (${answer.votes})</button>
+                                ${imageUrl}
+                            </div>`;
+                        });
+
+                        pollsContainer.appendChild(pollElement);
+                    });
+                }
+            });
+        }
+
+        // Preview uploaded image
+        function previewImage(event, previewId) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.getElementById(previewId);
+                previewDiv.style.backgroundImage = `url(${e.target.result})`;
+                previewDiv.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Vote on a poll
+        function vote(pollId, answerId) {
+            const userId = firebase.auth().currentUser.uid;
+            const userVoteRef = database.ref(`votes/${userId}/${pollId}`);
+
+            userVoteRef.once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    // Increment votes for the selected answer
+                    database.ref(`polls/${pollId}/answers/${answerId}/votes`).transaction((currentVotes) => {
+                        return (currentVotes || 0) + 1;
+                    });
+
+                    // Record the user's vote
+                    userVoteRef.set({ answerId });
+                } else {
+                    alert('You can only vote once per question.');
+                }
+            });
+        }
+
+        // Add question to Firebase
+        function addQuestion() {
+            const questionText = document.getElementById('question').value;
+            const answer1Text = document.getElementById('answer1').value;
+            const answer2Text = document.getElementById('answer2').value;
+            const image1 = document.getElementById('image1').files[0];
+            const image2 = document.getElementById('image2').files[0];
+
+            const newPollRef = database.ref('polls/').push();
+            const answers = {
+                answer1: { text: answer1Text, votes: 0 },
+                answer2: { text: answer2Text, votes: 0 }
+            };
+
+            // Upload images to Firebase Storage
+            const uploadImage = (imageFile, answerKey) => {
+                return new Promise((resolve, reject) => {
+                    if (imageFile) {
+                        const storageRef = storage.ref(`images/${newPollRef.key}/${answerKey}.jpg`);
+                        storageRef.put(imageFile).then(() => {
+                            storageRef.getDownloadURL().then(resolve).catch(reject);
+                        }).catch(reject);
+                    } else {
+                        resolve(null); // If no image is provided
+                    }
+                });
+            };
+
+            Promise.all([
+                uploadImage(image1, 'answer1'),
+                uploadImage(image2, 'answer2')
+            ]).then(([image1Url, image2Url]) => {
+                if (image1Url) answers.answer1.imageUrl = image1Url;
+                if (image2Url) answers.answer2.imageUrl = image2Url;
+
+                // Save the question and answers to the database
+                newPollRef.set({
+                    question: questionText,
+                    answers: answers
+                });
+
+                // Clear the form
+                document.getElementById('question').value = '';
+                document.getElementById('answer1').value = '';
+                document.getElementById('answer2').value = '';
+                document.getElementById('image1').value = '';
+                document.getElementById('image2').value = '';
+                document.getElementById('preview1').style.backgroundImage = '';
+                document.getElementById('preview2').style.backgroundImage = '';
+
+                // Fetch polls to update the view
+                fetchPolls();
+            });
+        }
+
+        // Toggle the add question form
+        function toggleForm() {
+            const form = document.getElementById('add-question-form');
+            form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+        }
+
+        // Initial fetch of polls
+        fetchPolls();
+    </script>
+</body>
+</html>

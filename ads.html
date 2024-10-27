@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube-Style Video Player with Ads</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #mainVideo, #adContainer {
+            width: 600px;
+            height: 340px;
+            margin-bottom: 10px;
+        }
+        #skipAd {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+</head>
+<body>
+
+    <h1>YouTube-Style Video Player with Google Ads</h1>
+
+    <!-- Main Video Player -->
+    <video id="mainVideo" width="600" height="340" controls>
+        <source id="videoSource" src="your-video-source.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Ad Container for Google Ads -->
+    <div id="adContainer"></div>
+
+    <!-- Skip Ad Button (will appear for skippable ads) -->
+    <button id="skipAd" hidden>Skip Ad</button>
+
+    <script>
+        // References to main video and ad elements
+        const videoContent = document.getElementById('mainVideo');
+        const adContainer = document.getElementById('adContainer');
+        const skipButton = document.getElementById('skipAd');
+        
+        // Initialize the IMA SDK Ad Display Container
+        const adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+        const adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+
+        adDisplayContainer.initialize(); // Initialize the ad display
+
+        // Add event listeners to handle ad loading and errors
+        adsLoader.addEventListener(
+            google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+            onAdsManagerLoaded,
+            false
+        );
+
+        adsLoader.addEventListener(
+            google.ima.AdErrorEvent.Type.AD_ERROR,
+            onAdError,
+            false
+        );
+
+        // Request and load the ads
+        function loadAds() {
+            const adsRequest = new google.ima.AdsRequest();
+            
+            // Use Google's test ad tag URL for testing purposes
+            adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&correlator=';
+
+            // Set video ad slot sizes
+            adsRequest.linearAdSlotWidth = 600;
+            adsRequest.linearAdSlotHeight = 340;
+            adsRequest.nonLinearAdSlotWidth = 600;
+            adsRequest.nonLinearAdSlotHeight = 150;
+
+            // Request ads
+            adsLoader.requestAds(adsRequest);
+        }
+
+        // Event handler when the AdsManager is loaded
+        function onAdsManagerLoaded(adsManagerLoadedEvent) {
+            const adsRenderingSettings = new google.ima.AdsRenderingSettings();
+            const adsManager = adsManagerLoadedEvent.getAdsManager(videoContent, adsRenderingSettings);
+
+            // Pause content when ads play
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, () => {
+                videoContent.pause();
+            });
+
+            // Resume content when ads finish
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, () => {
+                videoContent.play();
+            });
+
+            // Listen for skip event (if skippable ad)
+            adsManager.addEventListener(google.ima.AdEvent.Type.SKIPPABLE_STATE_CHANGED, (event) => {
+                if (adsManager.getAdSkippableState()) {
+                    skipButton.hidden = false;
+                    skipButton.addEventListener('click', () => {
+                        adsManager.skip();
+                    });
+                }
+            });
+
+            // Start ad playback
+            try {
+                adsManager.init(600, 340, google.ima.ViewMode.NORMAL);
+                adsManager.start();
+            } catch (adError) {
+                videoContent.play(); // Play video if there is an error
+            }
+        }
+
+        // Event handler when there is an ad error
+        function onAdError(adErrorEvent) {
+            console.error('Ad Error:', adErrorEvent.getError());
+            videoContent.play(); // Play video if ad fails
+        }
+
+        // Load ads when the video starts playing
+        videoContent.addEventListener('play', (event) => {
+            event.preventDefault(); // Prevent video from playing immediately
+            loadAds();
+        });
+    </script>
+
+</body>
+</html>

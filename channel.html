@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .video-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .video-card img {
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .video-details {
+            margin-top: 10px;
+        }
+
+        .video-details h3 {
+            margin: 10px 0;
+        }
+
+        .btn {
+            margin: 5px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #f0ad4e;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            font-size: 24px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Channel</h1>
+    
+    <div class="section-title">Videos</div>
+    <div class="video-container" id="videoContainer"></div>
+
+    <div class="section-title">Shorts</div>
+    <div class="video-container" id="shortsContainer"></div>
+
+    <!-- Modal for Edit Video -->
+    <div id="editModal" style="display: none;">
+        <div>
+            <h2>Edit Video</h2>
+            <label for="editTitle">Title:</label><br>
+            <input type="text" id="editTitle"><br><br>
+
+            <label for="editDescription">Description:</label><br>
+            <textarea id="editDescription"></textarea><br><br>
+
+            <label for="editTags">Tags:</label><br>
+            <input type="text" id="editTags"><br><br>
+
+            <label for="editThumbnail">Thumbnail:</label><br>
+            <input type="file" id="editThumbnailFile"><br><br>
+
+            <label for="editCategory">Category:</label><br>
+            <input type="text" id="editCategory"><br><br>
+
+            <button class="btn edit-btn" id="saveEditBtn">Save</button>
+            <button class="btn delete-btn" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js"></script>
+
+    <script>
+        // Your Firebase configuration here
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+    authDomain: "look-like-earn.firebaseapp.com",
+    projectId: "look-like-earn",
+    storageBucket: "look-like-earn.appspot.com",
+    messagingSenderId: "58041508438",
+    appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+    measurementId: "G-CJM9MJTXEH"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        const videoContainer = document.getElementById('videoContainer');
+        const shortsContainer = document.getElementById('shortsContainer');
+        let editVideoId = null;
+
+        // Authenticate user and fetch videos
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                const userId = user.uid; // Get the logged-in user's ID
+
+                // Fetch the user's videos and shorts from Firestore
+                loadUserVideos(userId);
+                loadUserShorts(userId);
+            } else {
+                console.log('No user is logged in');
+                alert('You need to log in first!');
+            }
+        });
+
+        // Fetch videos for logged-in user
+        function loadUserVideos(userId) {
+            db.collection('videos').where('userId', '==', userId).get().then(snapshot => {
+                videoContainer.innerHTML = '';  // Clear the container
+                if (snapshot.empty) {
+                    videoContainer.innerHTML = '<p>No videos uploaded yet.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const videoData = doc.data();
+                    const videoCard = `
+                        <div class="video-card">
+                            <img src="${videoData.thumbnail}" alt="${videoData.title}">
+                            <div class="video-details">
+                                <h3>${videoData.title}</h3>
+                                <p>${videoData.description}</p>
+                                <button class="btn edit-btn" onclick="editVideo('${doc.id}', '${videoData.title}', '${videoData.description}', '${videoData.tags}', '${videoData.category}')">Edit</button>
+                                <button class="btn delete-btn" onclick="confirmDelete('${doc.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    videoContainer.innerHTML += videoCard;
+                });
+            }).catch(error => {
+                console.error('Error fetching videos:', error);
+            });
+        }
+
+        // Fetch shorts for logged-in user
+        function loadUserShorts(userId) {
+            db.collection('shorts').where('userId', '==', userId).get().then(snapshot => {
+                shortsContainer.innerHTML = '';  // Clear the container
+                if (snapshot.empty) {
+                    shortsContainer.innerHTML = '<p>No shorts uploaded yet.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const shortsData = doc.data();
+                    const shortsCard = `
+                        <div class="video-card">
+                            <img src="${shortsData.thumbnail}" alt="${shortsData.title}">
+                            <div class="video-details">
+                                <h3>${shortsData.title}</h3>
+                                <p>${shortsData.description}</p>
+                                <button class="btn edit-btn" onclick="editShorts('${doc.id}', '${shortsData.title}', '${shortsData.description}', '${shortsData.tags}', '${shortsData.category}')">Edit</button>
+                                <button class="btn delete-btn" onclick="confirmDelete('${doc.id}', 'shorts')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    shortsContainer.innerHTML += shortsCard;
+                });
+            }).catch(error => {
+                console.error('Error fetching shorts:', error);
+            });
+        }
+
+        // Edit video function
+        function editVideo(id, title, description, tags, category) {
+            editVideoId = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editTags').value = tags;
+            document.getElementById('editCategory').value = category;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Edit shorts function
+        function editShorts(id, title, description, tags, category) {
+            editVideoId = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editTags').value = tags;
+            document.getElementById('editCategory').value = category;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Save edited video
+        document.getElementById('saveEditBtn').onclick = function() {
+            const updatedTitle = document.getElementById('editTitle').value;
+            const updatedDescription = document.getElementById('editDescription').value;
+            const updatedTags = document.getElementById('editTags').value;
+            const updatedCategory = document.getElementById('editCategory').value;
+
+            const file = document.getElementById('editThumbnailFile').files[0];
+
+            if (file) {
+                const storageRef = storage.ref().child('thumbnails/' + editVideoId);
+
+                storageRef.put(file).then(snapshot => {
+                    return snapshot.ref.getDownloadURL();  // Get the download URL after upload
+                }).then(downloadURL => {
+                    return db.collection('videos').doc(editVideoId).update({
+                        title: updatedTitle,
+                        description: updatedDescription,
+                        tags: updatedTags,
+                        thumbnail: downloadURL,  // Update the new thumbnail URL
+                        category: updatedCategory
+                    });
+                }).then(() => {
+                    alert('Video updated successfully!');
+                    loadUserVideos(auth.currentUser.uid);
+                    loadUserShorts(auth.currentUser.uid);  // Reload shorts
+                    closeEditModal();
+                }).catch(error => {
+                    console.error('Error updating video: ', error);
+                });
+            } else {
+                // If no new thumbnail is selected, update other fields only
+                db.collection('videos').doc(editVideoId).update({
+                    title: updatedTitle,
+                    description: updatedDescription,
+                    tags: updatedTags,
+                    category: updatedCategory
+                }).then(() => {
+                    alert('Video updated successfully!');
+                    loadUserVideos(auth.currentUser.uid);
+                    loadUserShorts(auth.currentUser.uid);  // Reload shorts
+                    closeEditModal();
+                }).catch(error => {
+                    console.error('Error updating video: ', error);
+                });
+            }
+        };
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Delete video with confirmation
+        function confirmDelete(videoId, type = 'videos') {
+            if (confirm('Are you sure you want to delete this video?')) {
+                db.collection(type).doc(videoId).delete().then(() => {
+                    alert('Video deleted successfully!');
+                    loadUserVideos(auth.currentUser.uid);
+                    loadUserShorts(auth.currentUser.uid);  // Reload shorts
+                }).catch(error => {
+                    console.error('Error deleting video: ', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Profile</title>
+    <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f9f9f9; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header { 
+            background-color: #ff0000; 
+            color: white; 
+            padding: 15px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        header .logo h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .profile-section { 
+            flex: 1;
+            padding: 20px 30px; 
+            max-width: 800px; 
+            margin: auto; 
+        }
+
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="file"], textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button { 
+            padding: 10px 20px; 
+            background-color: #ff0000; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #logout-btn { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #ff0000; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+
+        footer { 
+            background-color: #ff0000; 
+            padding: 15px 30px; 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+        }
+
+        footer a { 
+            color: white; 
+            text-decoration: none; 
+            font-size: 16px;
+        }
+
+        .error { 
+            color: red; 
+            margin-top: 5px; 
+            font-size: 14px;
+        }
+
+        .hidden { 
+            display: none; 
+        }
+
+        .profile-picture { 
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-bottom: 20px; 
+            border: 2px solid #ccc;
+        }
+
+        .user-info { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin-bottom: 30px;
+        }
+
+        .user-info p { 
+            margin: 5px 0; 
+            font-size: 18px;
+        }
+
+        .subscriber-count {
+            font-size: 16px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .button-group { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 30px;
+        }
+
+        .button-group button {
+            flex: 1;
+            background-color: #007BFF;
+        }
+
+        .button-group button.delete-btn {
+            background-color: #dc3545;
+        }
+
+        .video-list { 
+            margin-top: 20px; 
+        }
+
+        .video-item { 
+            margin-bottom: 15px; 
+            border: 1px solid #ccc; 
+            padding: 15px; 
+            border-radius: 4px; 
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .video-item img {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .video-details {
+            flex: 1;
+        }
+
+        .video-actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .video-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .video-item img {
+                width: 100%;
+                height: auto;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Subscribe Button Styling (Removed) */
+        /* .subscribe-btn {
+            padding: 10px 20px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .subscribe-btn.subscribed {
+            background-color: #555;
+        } */
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <h1>YouTube Clone - Profile</h1>
+    </div>
+    <div class="user-section">
+        <span id="user-display-name"></span>
+    </div>
+</header>
+
+<section class="profile-section">
+    <!-- Login Button -->
+    <button id="login-btn">Login with Google</button>
+
+    <!-- Logout Button -->
+    <button id="logout-btn" class="hidden">Logout</button>
+
+    <!-- Channel Information Form -->
+    <div id="channel-info" class="hidden">
+        <h2>Manage Your Channel</h2>
+        <div class="form-group">
+            <label for="channelName">Channel Name</label>
+            <input type="text" id="channelName" placeholder="Enter your Channel Name" required />
+        </div>
+        <div class="form-group">
+            <label for="channelUsername">Channel Username (5-15 characters)</label>
+            <input type="text" id="channelUsername" placeholder="Enter your Channel Username" required />
+            <p class="error" id="usernameError" style="display: none;">Username must be 5-15 characters long and contain only letters or numbers.</p>
+            <p class="error" id="usernameTakenError" style="display: none;">Username is already taken. Please choose another.</p>
+        </div>
+        <div class="form-group">
+            <label for="channelImage">Channel Image</label>
+            <input type="file" id="channelImage" accept="image/*" />
+            <p class="error" id="imageError" style="display: none;">Please select a valid image file (JPEG, PNG, GIF).</p>
+        </div>
+        <button id="save-btn">Save Channel Info</button>
+        <p class="error" id="saveError" style="display: none;">Failed to save channel info. Please try again.</p>
+        <p id="saveStatus"></p>
+    </div>
+
+    <!-- User Information Display -->
+    <div id="user-info" class="hidden user-info">
+        <img id="user-photo" class="profile-picture" alt="User Photo" />
+        <p id="user-name"></p>
+        <p id="channel-details"></p>
+        <p class="subscriber-count" id="subscriber-count">Subscribers: 0</p>
+        <div class="button-group">
+            <button id="edit-btn">Edit Channel Info</button>
+            <button id="channel-btn">Your Channel</button>
+            <!-- Subscribe Button Removed -->
+            <!-- <button id="subscribe-btn" class="subscribe-btn hidden">Subscribe</button> -->
+        </div>
+    </div>
+
+    <!-- User Uploaded Videos and Shorts -->
+    <div id="channel-videos" class="hidden">
+        <h2>Your Uploaded Videos</h2>
+        <div class="video-list" id="video-list"></div>
+    </div>
+</section>
+
+<footer>
+    <a href="index.html">Home</a>
+    <a href="upload.html">Upload</a>
+    <a href="profile.html">Profile</a>
+</footer>
+
+<!-- Logout Button Fixed at Bottom Removed as it's already in the header -->
+
+<script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where, serverTimestamp, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+        authDomain: "look-like-earn.firebaseapp.com",
+        projectId: "look-like-earn",
+        storageBucket: "look-like-earn.appspot.com",
+        messagingSenderId: "58041508438",
+        appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+        measurementId: "G-CJM9MJTXEH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // DOM Elements
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const channelInfo = document.getElementById('channel-info');
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    const userPhoto = document.getElementById('user-photo');
+    const channelDetails = document.getElementById('channel-details');
+    const saveBtn = document.getElementById('save-btn');
+    const editBtn = document.getElementById('edit-btn');
+    const channelBtn = document.getElementById('channel-btn');
+    // const subscribeBtn = document.getElementById('subscribe-btn'); // Removed
+    const channelUsernameInput = document.getElementById('channelUsername');
+    const channelNameInput = document.getElementById('channelName');
+    const channelImageInput = document.getElementById('channelImage');
+    const usernameError = document.getElementById('usernameError');
+    const usernameTakenError = document.getElementById('usernameTakenError');
+    const imageError = document.getElementById('imageError');
+    const saveError = document.getElementById('saveError');
+    const saveStatus = document.getElementById('saveStatus');
+    const videoList = document.getElementById('video-list');
+    const channelVideos = document.getElementById('channel-videos');
+    const subscriberCountDisplay = document.getElementById('subscriber-count');
+    const userDisplayName = document.getElementById('user-display-name');
+
+    let userId = null;
+    let imageUrl = null;
+    let currentUserData = null;
+
+    // Event Listeners
+    loginBtn.addEventListener('click', () => {
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider)
+            .catch(error => {
+                console.error("Error during Google Sign-In:", error);
+                alert("Failed to sign in. Please try again.");
+            });
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth)
+            .catch(error => {
+                console.error("Error during Sign-Out:", error);
+                alert("Failed to sign out. Please try again.");
+            });
+    });
+
+    saveBtn.addEventListener('click', async () => {
+        const channelUsername = channelUsernameInput.value.trim();
+        const channelName = channelNameInput.value.trim();
+        const channelImageFile = channelImageInput.files[0];
+
+        // Validate Username
+        const usernameRegex = /^[a-zA-Z0-9]{5,15}$/;
+        if (!usernameRegex.test(channelUsername)) {
+            usernameError.style.display = 'block';
+            usernameTakenError.style.display = 'none';
+            return;
+        } else {
+            usernameError.style.display = 'none';
+            usernameTakenError.style.display = 'none';
+        }
+
+        // Validate Image (if selected)
+        if (channelImageFile) {
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validImageTypes.includes(channelImageFile.type)) {
+                imageError.style.display = 'block';
+                return;
+            } else {
+                imageError.style.display = 'none';
+            }
+        }
+
+        // Disable Save Button to prevent multiple submissions
+        saveBtn.disabled = true;
+        saveStatus.textContent = "Saving channel info...";
+
+        try {
+            // Check if username is already taken
+            const usernamesRef = collection(db, 'usernames');
+            const usernameDocRef = doc(usernamesRef, channelUsername);
+            const usernameDoc = await getDoc(usernameDocRef);
+
+            if (usernameDoc.exists() && usernameDoc.data().userId !== userId) {
+                // Username is taken by another user
+                usernameTakenError.style.display = 'block';
+                saveStatus.textContent = "";
+                saveBtn.disabled = false;
+                return;
+            }
+
+            // Start a batch to ensure atomicity
+            const batch = writeBatch(db);
+
+            // If the user is changing their username, delete the old one
+            if (currentUserData.channelUsername && currentUserData.channelUsername !== channelUsername) {
+                const oldUsernameRef = doc(usernamesRef, currentUserData.channelUsername);
+                batch.delete(oldUsernameRef);
+            }
+
+            // Set the new username in the 'usernames' collection
+            batch.set(usernameDocRef, {
+                userId: userId
+            });
+
+            // Upload Channel Image if selected
+            if (channelImageFile) {
+                const imageRef = ref(storage, `channelImages/${userId}`);
+                await uploadBytes(imageRef, channelImageFile);
+                imageUrl = await getDownloadURL(imageRef);
+            } else {
+                imageUrl = currentUserData.imageUrl || "";
+            }
+
+            // Save or Update User Profile in Firestore
+            const userDocRef = doc(db, 'users', userId);
+            batch.set(userDocRef, {
+                channelName: channelName,
+                channelUsername: channelUsername,
+                imageUrl: imageUrl
+                // Do not set subscriberCount here to prevent overwriting
+            }, { merge: true });
+
+            // Also update the Channels Collection to maintain consistency
+            const channelDocRef = doc(db, 'channels', userId);
+            batch.set(channelDocRef, {
+                channelName: channelName,
+                channelLogo: imageUrl,
+                subscriberCount: currentUserData.subscriberCount || 0
+            }, { merge: true });
+
+            // Commit the batch
+            await batch.commit();
+
+            saveStatus.textContent = "Channel info saved successfully!";
+            saveError.style.display = 'none';
+
+            // Fetch updated user data
+            const updatedUserDoc = await getDoc(userDocRef);
+            if (updatedUserDoc.exists()) {
+                currentUserData = updatedUserDoc.data();
+                showUserInfo(currentUserData.channelName, currentUserData.channelUsername, currentUserData.imageUrl);
+            }
+
+        } catch (error) {
+            console.error("Error saving channel info:", error);
+            saveError.style.display = 'block';
+
+            // Provide more specific error messages based on the error
+            if (error.code === 'permission-denied') {
+                saveError.textContent = "Insufficient permissions to save channel info.";
+            } else if (error.code === 'already-exists') {
+                saveError.textContent = "Username already exists. Please choose another.";
+            } else {
+                saveError.textContent = "Failed to save channel info. Please try again.";
+            }
+
+            saveStatus.textContent = "";
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    editBtn.addEventListener('click', () => {
+        userInfo.classList.add('hidden');
+        channelInfo.classList.remove('hidden');
+
+        // Pre-fill the form with existing data
+        channelNameInput.value = currentUserData.channelName || "";
+        channelUsernameInput.value = currentUserData.channelUsername || "";
+    });
+
+    channelBtn.addEventListener('click', async () => {
+        channelVideos.classList.remove('hidden');
+        videoList.innerHTML = '';
+
+        if (userId) {
+            try {
+                const videoCollection = collection(db, 'videos');
+                const q = query(videoCollection, where("uploaderId", "==", userId));
+                const videoDocs = await getDocs(q);
+
+                if (videoDocs.empty) {
+                    videoList.innerHTML = '<p>No videos uploaded yet.</p>';
+                    return;
+                }
+
+                videoDocs.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const videoItem = document.createElement('div');
+                    videoItem.className = 'video-item';
+                    videoItem.innerHTML = `
+                        <img src="${data.thumbnailUrl || 'https://via.placeholder.com/120x90?text=No+Thumbnail'}" alt="Video Thumbnail" />
+                        <div class="video-details">
+                            <h3>${data.title}</h3>
+                            <p>${data.description}</p>
+                        </div>
+                        <div class="video-actions">
+                            <button onclick="editVideo('${docSnap.id}')">Edit</button>
+                            <button onclick="deleteVideo('${docSnap.id}', '${data.storagePath}')">Delete</button>
+                        </div>
+                    `;
+                    videoList.appendChild(videoItem);
+                });
+            } catch (error) {
+                console.error("Error fetching videos:", error);
+                videoList.innerHTML = '<p>Error fetching videos. Please try again later.</p>';
+            }
+        }
+    });
+
+    // Function to edit video (Placeholder - Implement as Needed)
+    window.editVideo = function(videoId) {
+        // Implement video editing functionality or redirect to video editing page
+        alert(`Edit functionality for video ID: ${videoId} is not implemented yet.`);
+    }
+
+    // Function to delete video
+    window.deleteVideo = async function(videoId, storagePath) {
+        if (!confirm("Are you sure you want to delete this video?")) return;
+
+        try {
+            // Delete from Firestore
+            const videoRef = doc(db, 'videos', videoId);
+            await deleteDoc(videoRef);
+
+            // Delete from Storage
+            const videoStorageRef = ref(storage, storagePath);
+            await deleteObject(videoStorageRef);
+
+            alert("Video deleted successfully.");
+            // Refresh the video list
+            channelBtn.click();
+        } catch (error) {
+            console.error("Error deleting video:", error);
+            alert("Failed to delete video. Please try again.");
+        }
+    }
+
+    // Function to display user information
+    function showUserInfo(channelName, channelUsername, imageUrl) {
+        userInfo.classList.remove('hidden');
+        channelInfo.classList.add('hidden');
+        userName.textContent = `Channel Name: ${channelName}`;
+        channelDetails.textContent = `Username: ${channelUsername}`;
+        subscriberCountDisplay.textContent = `Subscribers: ${currentUserData.subscriberCount || 0}`;
+        userPhoto.src = imageUrl || 'https://via.placeholder.com/150?text=No+Image';
+    }
+
+    // Listen for authentication state changes
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            loginBtn.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
+            userInfo.classList.remove('hidden');
+            channelInfo.classList.add('hidden');
+            channelVideos.classList.add('hidden');
+            userId = user.uid;
+            userDisplayName.textContent = `Logged in as ${user.displayName || 'User'}`;
+
+            // Fetch User Profile from Firestore
+            try {
+                const userDocRef = doc(db, 'users', userId);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    currentUserData = userDoc.data();
+                    showUserInfo(currentUserData.channelName, currentUserData.channelUsername, currentUserData.imageUrl);
+                } else {
+                    // If no profile exists, show the channel info form and initialize subscriberCount
+                    channelInfo.classList.remove('hidden');
+                    userInfo.classList.add('hidden');
+
+                    // Initialize subscriberCount to 0 in both 'users' and 'channels' collections
+                    await setDoc(doc(db, 'users', userId), {
+                        subscriberCount: 0
+                    }, { merge: true });
+
+                    await setDoc(doc(db, 'channels', userId), {
+                        subscriberCount: 0
+                    }, { merge: true });
+
+                    currentUserData = { subscriberCount: 0 };
+                }
+
+                // The subscription button is removed since this is the user's own profile
+
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                alert("Failed to fetch user profile. Please try again.");
+            }
+        } else {
+            // User is signed out
+            loginBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+            userInfo.classList.add('hidden');
+            channelInfo.classList.add('hidden');
+            channelVideos.classList.add('hidden');
+            userDisplayName.textContent = '';
+            // subscribeBtn.classList.add('hidden'); // Removed
+        }
+    });
+
+    channelBtn.addEventListener('click', () => {
+    // Navigate to channel.html
+    window.location.href = 'channel.html';
+});
+
+</script>
+</body>
+</html>

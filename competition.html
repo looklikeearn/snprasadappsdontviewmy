@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Links and Likes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .chat-bubble {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 75%;
+            position: relative;
+        }
+        .chat-link {
+            color: #007BFF;
+            text-decoration: none;
+            word-wrap: break-word;
+        }
+        .chat-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .like-btn {
+            margin-top: 5px;
+            background-color: #ffcc00;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+        .send-btn {
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 20px;
+        }
+        .questions-container {
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 32px;
+            padding: 10px;
+            background-color: #e9ecef;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="questionsContainer" class="questions-container"></div>
+    <div id="chatContainer" class="chat-container"></div>
+    <div class="input-container">
+        <input id="chatInput" class="chat-input" type="text" placeholder="Type here (links only)" />
+        <button id="sendBtn" class="send-btn">Send</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, increment, arrayUnion, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+    authDomain: "look-like-earn.firebaseapp.com",
+    projectId: "look-like-earn",
+    storageBucket: "look-like-earn.appspot.com",
+    messagingSenderId: "58041508438",
+    appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+    measurementId: "G-CJM9MJTXEH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const questionsContainer = document.getElementById('questionsContainer');
+        async function fetchQuestions() {
+            const querySnapshot = await getDocs(collection(db, "questions"));
+            questionsContainer.innerHTML = '';
+
+            querySnapshot.forEach((doc) => {
+                const questionData = doc.data();
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question';
+                questionElement.textContent = questionData.question;
+
+                questionsContainer.appendChild(questionElement);
+            });
+        }
+
+        function timeAgo(timestamp) {
+            const seconds = Math.floor((new Date() - timestamp.toDate()) / 1000);
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return interval + " years ago";
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return interval + " months ago";
+            interval = Math.floor(seconds / 604800);
+            if (interval > 1) return interval + " weeks ago";
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return interval + " days ago";
+            interval = Math.floor(seconds / 3600);
+            if (interval > 1) return interval + " hours ago";
+            interval = Math.floor(seconds / 60);
+            if (interval > 1) return interval + " minutes ago";
+            return "just now";
+        }
+
+        function appendChat(chatData, docId) {
+            const chatBubble = document.createElement('div');
+            chatBubble.className = 'chat-bubble';
+
+            const timeString = timeAgo(chatData.timestamp);
+
+            chatBubble.innerHTML = `
+                <a href="${chatData.link}" target="_blank" class="chat-link">${chatData.link}</a>
+                <div class="chat-time">${timeString}</div>
+                <button class="like-btn" data-id="${docId}">
+                    Like (${chatData.likes || 0})
+                </button>
+            `;
+
+            chatContainer.appendChild(chatBubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight; 
+        }
+
+        const chatContainer = document.getElementById('chatContainer');
+
+        // Real-time listener for chats
+        function listenForChats() {
+            const chatsQuery = query(collection(db, "chats"), orderBy("timestamp")); // Order by timestamp
+            onSnapshot(chatsQuery, (querySnapshot) => {
+                chatContainer.innerHTML = ''; // Clear previous messages
+                querySnapshot.forEach((doc) => {
+                    const chatData = doc.data();
+                    appendChat(chatData, doc.id);
+                });
+
+                // Add event listeners for like buttons after loading chats
+                document.querySelectorAll('.like-btn').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        const chatId = e.target.getAttribute('data-id');
+                        const chatRef = doc(db, 'chats', chatId);
+
+                        await updateDoc(chatRef, {
+                            likes: increment(1),
+                            likedBy: arrayUnion("anonymous") // Placeholder, replace if you have a user ID
+                        });
+                        const currentLikes = parseInt(e.target.textContent.split(' ')[1]) + 1;
+                        e.target.textContent = `Like (${currentLikes})`;
+                        e.target.disabled = true;
+                    });
+                });
+            });
+        }
+
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        sendBtn.addEventListener('click', async () => {
+            const chatMessage = chatInput.value.trim();
+            if (chatMessage && chatMessage.startsWith('http')) {
+                const docRef = await addDoc(collection(db, 'chats'), {
+                    link: chatMessage,
+                    likes: 0,
+                    likedBy: [],
+                    timestamp: new Date() // Save the timestamp
+                });
+
+                appendChat({
+                    link: chatMessage,
+                    likes: 0,
+                    likedBy: [],
+                    timestamp: new Date() // Include timestamp in appended chat
+                }, docRef.id);
+
+                chatInput.value = '';
+            } else {
+                alert('Please enter a valid link.');
+            }
+        });
+
+        // Initial fetch and real-time listener
+        fetchQuestions().catch((error) => {
+            console.error("Error fetching questions: ", error);
+        });
+        listenForChats(); // Set up real-time listener
+    </script>
+
+</body>
+</html>

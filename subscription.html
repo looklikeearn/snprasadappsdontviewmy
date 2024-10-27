@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Subscriptions</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .subscription-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .channel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            height: 50px;
+            margin: 10px 0;
+            padding: 5px 10px;
+        }
+        .channel img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .channel-name {
+            flex-grow: 1;
+            font-size: 16px;
+            text-align: left;
+        }
+        .unsubscribe-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .unsubscribe-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Subscriptions</h1>
+    <div class="subscription-container" id="subscriptions"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfIdVf-vnpMLypBCljg9GWPUbevS6Im8E",
+    authDomain: "look-like-earn.firebaseapp.com",
+    projectId: "look-like-earn",
+    storageBucket: "look-like-earn.appspot.com",
+    messagingSenderId: "58041508438",
+    appId: "1:58041508438:web:04cf8cff90d2e7271e11f7",
+    measurementId: "G-CJM9MJTXEH"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Function to fetch subscriptions
+        function fetchSubscriptions() {
+            const userId = firebase.auth().currentUser.uid;
+            const subscriptionsRef = database.ref(`subscriptions/${userId}`);
+
+            subscriptionsRef.on('value', (snapshot) => {
+                const subscriptions = snapshot.val();
+                const subscriptionsContainer = document.getElementById('subscriptions');
+                subscriptionsContainer.innerHTML = '';
+
+                if (subscriptions) {
+                    Object.keys(subscriptions).forEach((channelId) => {
+                        const channel = subscriptions[channelId];
+                        const channelElement = document.createElement('div');
+                        channelElement.classList.add('channel');
+                        channelElement.innerHTML = `
+                            <img src="${channel.logo}" alt="${channel.name}">
+                            <div class="channel-name">${channel.name}</div>
+                            <button class="unsubscribe-btn" onclick="unsubscribe('${channelId}')">Unsubscribe</button>
+                        `;
+                        subscriptionsContainer.appendChild(channelElement);
+                    });
+                } else {
+                    subscriptionsContainer.innerHTML = '<p>No subscriptions found.</p>';
+                }
+            });
+        }
+
+        // Function to unsubscribe from a channel
+        function unsubscribe(channelId) {
+            const userId = firebase.auth().currentUser.uid;
+            const userSubscriptionRef = database.ref(`subscriptions/${userId}/${channelId}`);
+           
+            userSubscriptionRef.remove().then(() => {
+                alert('Unsubscribed successfully!');
+            }).catch((error) => {
+                console.error('Error unsubscribing: ', error);
+            });
+        }
+
+        // Load subscriptions on page load
+        window.onload = () => {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    fetchSubscriptions();
+                } else {
+                    alert('Please log in to see your subscriptions.');
+                    // Optionally redirect to login page
+                    // window.location.href = 'login.html';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
