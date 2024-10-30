@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LookLike</title>
+    <title>YouTube Clone - Watch Video</title>
     <style>
         body, html {
             margin: 0;
@@ -174,7 +174,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-
+    
+    // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
   authDomain: "look-like-e8819.firebaseapp.com",
@@ -184,11 +185,10 @@
   appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
   measurementId: "G-RPHVKH612W"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-
+    
     const videoPlayer = document.getElementById('video-player');
     const videoTitle = document.getElementById('video-title');
     const videoDescription = document.getElementById('video-description');
@@ -197,9 +197,8 @@
     const channelName = document.getElementById('channel-name');
     const subscriberCount = document.getElementById('subscriber-count');
     const subscribeButton = document.getElementById('subscribe-button');
-
     let isDescriptionExpanded = false;
-
+    
     moreButton.addEventListener('click', () => {
         if (isDescriptionExpanded) {
             videoDescription.style.maxHeight = '40px';
@@ -210,40 +209,67 @@
         }
         isDescriptionExpanded = !isDescriptionExpanded;
     });
-
+    
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId');
-
-    let userId; // For channel ID
-
+    let userId;
+    
+    // Function to calculate "time ago" format
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        const intervals = [
+            { label: 'year', seconds: 31536000 },
+            { label: 'month', seconds: 2592000 },
+            { label: 'day', seconds: 86400 },
+            { label: 'hour', seconds: 3600 },
+            { label: 'minute', seconds: 60 },
+            { label: 'second', seconds: 1 }
+        ];
+        for (const interval of intervals) {
+            const count = Math.floor(seconds / interval.seconds);
+            if (count >= 1) {
+                return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+            }
+        }
+        return 'just now';
+    }
+    
     async function loadVideo() {
         try {
             const videoDocRef = doc(db, "videos", videoId);
             const videoDoc = await getDoc(videoDocRef);
-
+            
             if (videoDoc.exists()) {
                 const videoData = videoDoc.data();
-                userId = videoData.userId; // Store userId (channel ID)
-
+                userId = videoData.userId;
                 videoPlayer.src = videoData.videoUrl;
                 videoTitle.textContent = videoData.title || "Untitled Video";
                 videoDescription.textContent = videoData.description || "No description available.";
-
+                
                 // Increment views
-                await updateDoc(videoDocRef, {
-                    views: increment(1)
-                });
-
+                await updateDoc(videoDocRef, { views: increment(1) });
+    
                 // Get updated video data after incrementing views
                 const updatedVideoDoc = await getDoc(videoDocRef);
                 const updatedData = updatedVideoDoc.data();
-
-                // Display video details
                 document.getElementById('views').textContent = `Views: ${updatedData.views || 0}`;
-                document.getElementById('upload-time').textContent = `Uploaded: ${updatedData.uploadTime ? new Date(updatedData.uploadTime.seconds * 1000).toLocaleString() : 'N/A'}`;
+    
+                if (updatedData.timestamp) {
+                    const uploadDate = new Date(updatedData.timestamp.seconds * 1000);
+                    
+                    // Format date as dd/mm/yyyy
+                    const day = String(uploadDate.getDate()).padStart(2, '0');
+                    const month = String(uploadDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+                    const year = uploadDate.getFullYear();
+                    const formattedDate = `${day}/${month}/${year}`;
+                    
+                    const timeAgoText = timeAgo(uploadDate);
+                    document.getElementById('upload-time').textContent = `Uploaded: ${formattedDate} (${timeAgoText})`;
+                } else {
+                    document.getElementById('upload-time').textContent = "Uploaded: N/A";
+                }
+                
                 document.getElementById('likes').textContent = `Likes: ${updatedData.likes || 0}`;
-
-                // Load Channel Info using userId
                 await loadChannelInfo(userId);
                 videoPlayer.play();
             } else {
@@ -253,12 +279,12 @@
             console.error(`Error fetching video: ${error.message}`);
         }
     }
-
+    
     async function loadChannelInfo(userId) {
         try {
-            const channelDocRef = doc(db, "channels", userId); // Fetch channel info using userId
+            const channelDocRef = doc(db, "channels", userId);
             const channelDoc = await getDoc(channelDocRef);
-
+            
             if (channelDoc.exists()) {
                 const channelData = channelDoc.data();
                 channelLogo.src = channelData.channelLogo || 'default-channel-logo.png';
@@ -271,21 +297,21 @@
             console.error(`Error loading channel info: ${error.message}`);
         }
     }
-
+    
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            checkSubscriptionStatus(user.uid); // Check if the user is already subscribed
+            checkSubscriptionStatus(user.uid);
             subscribeButton.addEventListener('click', () => {
                 toggleSubscription(user.uid);
             });
         }
     });
-
+    
     async function checkSubscriptionStatus(currentUserId) {
         try {
             const userDocRef = doc(db, "users", currentUserId);
             const userDoc = await getDoc(userDocRef);
-
+            
             if (userDoc.exists()) {
                 const userData = userDoc.data();
                 if (userData.subscribedChannels && userData.subscribedChannels.includes(userId)) {
@@ -300,45 +326,33 @@
             console.error("Error checking subscription status:", error.message);
         }
     }
-
+    
     async function toggleSubscription(currentUserId) {
         try {
-            const channelDocRef = doc(db, "channels", userId); // Channel to subscribe/unsubscribe to
-            const userDocRef = doc(db, "users", currentUserId); // Current user subscribing/unsubscribing
-
+            const channelDocRef = doc(db, "channels", userId);
+            const userDocRef = doc(db, "users", currentUserId);
             const channelDoc = await getDoc(channelDocRef);
             const userDoc = await getDoc(userDocRef);
-
+            
             if (channelDoc.exists() && userDoc.exists()) {
                 const channelData = channelDoc.data();
                 const userData = userDoc.data();
                 let updatedSubscribedChannels = userData.subscribedChannels || [];
-
+    
                 if (updatedSubscribedChannels.includes(userId)) {
-                    // Unsubscribe logic
                     updatedSubscribedChannels = updatedSubscribedChannels.filter(id => id !== userId);
-                    await updateDoc(userDocRef, {
-                        subscribedChannels: updatedSubscribedChannels
-                    });
-                    await updateDoc(channelDocRef, {
-                        subscriberCount: increment(-1)
-                    });
+                    await updateDoc(userDocRef, { subscribedChannels: updatedSubscribedChannels });
+                    await updateDoc(channelDocRef, { subscriberCount: increment(-1) });
                     subscribeButton.textContent = "Subscribe";
                     subscribeButton.style.backgroundColor = "black";
                 } else {
-                    // Subscribe logic
                     updatedSubscribedChannels.push(userId);
-                    await updateDoc(userDocRef, {
-                        subscribedChannels: updatedSubscribedChannels
-                    });
-                    await updateDoc(channelDocRef, {
-                        subscriberCount: increment(1)
-                    });
+                    await updateDoc(userDocRef, { subscribedChannels: updatedSubscribedChannels });
+                    await updateDoc(channelDocRef, { subscriberCount: increment(1) });
                     subscribeButton.textContent = "Subscribed";
                     subscribeButton.style.backgroundColor = "gold";
                 }
-
-                // Update subscriber count UI
+    
                 const updatedChannelDoc = await getDoc(channelDocRef);
                 subscriberCount.textContent = `${updatedChannelDoc.data().subscriberCount} subscribers`;
             }
@@ -346,10 +360,11 @@
             console.error(`Error toggling subscription: ${error.message}`);
         }
     }
-
-    // Call loadVideo when the page loads
+    
+    // Load video on page load
     loadVideo();
-</script>
+    </script>
+    
 
 </body>
 </html>
