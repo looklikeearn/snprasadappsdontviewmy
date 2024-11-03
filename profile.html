@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Look Like - Profile</title>
+    <title>YouTube Clone - Profile</title>
     <style>
         /* Basic Reset */
         * {
@@ -229,7 +229,7 @@
 
 <header>
     <div class="logo">
-        <h1>Look Like Earn- Profile</h1>
+        <h1>YouTube Clone - Profile</h1>
     </div>
     <div class="user-section">
         <span id="user-display-name"></span>
@@ -350,13 +350,9 @@
 
     // Event Listeners
     loginBtn.addEventListener('click', () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .catch(error => {
-                console.error("Error during Google Sign-In:", error);
-                alert("Failed to sign in. Please try again.");
-            });
-    });
+    window.location.href = "login.html";  // Redirect to login.html
+});
+
 
     logoutBtn.addEventListener('click', () => {
         signOut(auth)
