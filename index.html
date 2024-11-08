@@ -278,13 +278,13 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
+        apiKey: "AIzaSyDebZ98GjmX8gxYC4jI_gmiChm7TzFqsMg",
+        authDomain: "test-d6f13.firebaseapp.com",
+        projectId: "test-d6f13",
+        storageBucket: "test-d6f13.appspot.com",
+        messagingSenderId: "1043978393185",
+        appId: "1:1043978393185:web:a40e50c013d7869b8cfc20",
+        measurementId: "G-VLTFR2GXGS"
     };
 
     // Initialize Firebase
@@ -293,8 +293,6 @@
     const auth = getAuth(app);
 
     const videoListElement = document.getElementById('video-list');
-    // Removed search input reference since it's removed
-    // const searchInput = document.getElementById('search');
 
     // Function to load videos from Firestore
     async function loadVideos() {
@@ -312,6 +310,7 @@
             });
         } catch (error) {
             console.error('Error loading videos:', error);
+            videoListElement.innerHTML = '<p>Error loading videos. Please try again later.</p>';
         }
     }
 
@@ -338,12 +337,17 @@
         videoListElement.appendChild(videoItem);
     }
 
-    // Check if the user is authenticated
+    // Load video thumbnails regardless of authentication status
+    loadVideos();
+
+    // Optional: Monitor authentication status for additional features
     onAuthStateChanged(auth, user => {
         if (user) {
-            loadVideos();  // Load video thumbnails if user is authenticated
+            console.log('User is logged in.');
+            // Additional logged-in user-specific logic can go here
         } else {
-            videoListElement.innerHTML = '<p>You need to log in to view videos.</p>';
+            console.log('User is not logged in.');
+            // Optional: Display a message or prompt to log in for additional features
         }
     });
 
@@ -376,6 +380,5 @@
         link.addEventListener('click', closeMenu);
     });
 </script>
-
 </body>
 </html>
