@@ -233,7 +233,20 @@
         }
         return 'just now';
     }
-    
+
+    shareBtn.addEventListener('click', () => {
+    const videoUrl = `${window.location.origin}/video.html?videoId=${videoId}`;
+    if (navigator.share) {
+        navigator.share({
+            title: videoTitle.textContent,
+            text: "Check out this video!",
+            url: videoUrl,
+        }).catch(error => console.error("Error sharing video:", error));
+    } else {
+        navigator.clipboard.writeText(videoUrl)
+            .then(() => alert("Video link copied to clipboard!"))
+            .catch(error => console.error("Error copying link:", error));
+    }
     async function loadVideo() {
         try {
             const videoDocRef = doc(db, "videos", videoId);
