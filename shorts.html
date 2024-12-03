@@ -316,53 +316,38 @@
         }
     }
 
-    let touchStartX = 0;
-let touchEndX = 0;
+    // Swipe detection
+    let startX = 0;
+    let startY = 0;
 
-// Add touch and mouse event listeners to the container
-shortContainer.addEventListener('touchstart', handleTouchStart, false);
-shortContainer.addEventListener('touchend', handleTouchEnd, false);
-shortContainer.addEventListener('mousedown', handleMouseDown, false);
-shortContainer.addEventListener('mouseup', handleMouseUp, false);
+    shortContainer.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    });
 
-function handleTouchStart(event) {
-    touchStartX = event.changedTouches[0].screenX;
-}
+    shortContainer.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = endX - startX;
+        const diffY = endY - startY;
 
-function handleTouchEnd(event) {
-    touchEndX = event.changedTouches[0].screenX;
-    handleSwipe();
-}
-
-function handleMouseDown(event) {
-    touchStartX = event.screenX;
-}
-
-function handleMouseUp(event) {
-    touchEndX = event.screenX;
-    handleSwipe();
-}
-
-function handleSwipe() {
-    if (touchStartX - touchEndX > 50) {
-        // Swipe Left (Next Short)
-        if (currentIndex < shorts.length - 1) {
-            currentIndex++;
-            displayShort(currentIndex);
-        } else {
-            alert("No more shorts available!");
+        // Detect vertical swipe
+        if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 50) {
+            if (diffY > 0) {
+                // Swipe down - previous video
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    displayShort(currentIndex);
+                }
+            } else {
+                // Swipe up - next video
+                if (currentIndex < shorts.length - 1) {
+                    currentIndex++;
+                    displayShort(currentIndex);
+                }
+            }
         }
-    } else if (touchEndX - touchStartX > 50) {
-        // Swipe Right (Previous Short)
-        if (currentIndex > 0) {
-            currentIndex--;
-            displayShort(currentIndex);
-        } else {
-            alert("You're at the first short!");
-        }
-    }
-}
-
+    });
 
     // Subscribe functionality
     subscribeButton.onclick = async () => {
