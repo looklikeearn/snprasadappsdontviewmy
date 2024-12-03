@@ -115,14 +115,58 @@
             border-radius: 5px;
         }
 
-        .next-video {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #00f;
-            text-align: center;
-            color: white;
-            font-size: 20px;
+        .related-videos {
+            margin-top: 30px;
+        }
+
+        .related-video {
+            display: inline-block;
+            width: 160px;
+            margin: 10px;
             cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .related-videos {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .related-video {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 320px;
+            cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            aspect-ratio: 24 / 13;
+            overflow: hidden;
+        }
+
+        .related-video-title {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+        }
+
+
+        .related-video-title {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 5px;
+            color: #fff;
         }
     </style>
 </head>
@@ -166,14 +210,16 @@
             <input type="text" class="comment-input" placeholder="Add a comment...">
         </div>
 
-        <div class="next-video">Next video</div>
+        <div class="related-videos" id="related-videos">
+            <!-- Related videos will be populated here -->
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     
     // Firebase configuration
     const firebaseConfig = {
@@ -188,17 +234,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    
+
     const videoPlayer = document.getElementById('video-player');
     const videoTitle = document.getElementById('video-title');
+    const shareBtn = document.getElementById('shareBtn');
     const videoDescription = document.getElementById('video-description');
     const moreButton = document.getElementById('more-button');
     const channelLogo = document.getElementById('channel-logo');
     const channelName = document.getElementById('channel-name');
     const subscriberCount = document.getElementById('subscriber-count');
     const subscribeButton = document.getElementById('subscribe-button');
+    const relatedVideosContainer = document.getElementById('related-videos');
     let isDescriptionExpanded = false;
-    
+
+    // Toggle video description length
     moreButton.addEventListener('click', () => {
         if (isDescriptionExpanded) {
             videoDescription.style.maxHeight = '40px';
@@ -209,12 +258,11 @@
         }
         isDescriptionExpanded = !isDescriptionExpanded;
     });
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId');
     let userId;
     
-    // Function to calculate "time ago" format
     function timeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         const intervals = [
@@ -245,33 +293,26 @@
                 videoPlayer.src = videoData.videoUrl;
                 videoTitle.textContent = videoData.title || "Untitled Video";
                 videoDescription.textContent = videoData.description || "No description available.";
-                
-                // Increment views
+
                 await updateDoc(videoDocRef, { views: increment(1) });
-    
-                // Get updated video data after incrementing views
                 const updatedVideoDoc = await getDoc(videoDocRef);
                 const updatedData = updatedVideoDoc.data();
                 document.getElementById('views').textContent = `Views: ${updatedData.views || 0}`;
-    
+
                 if (updatedData.timestamp) {
                     const uploadDate = new Date(updatedData.timestamp.seconds * 1000);
-                    
-                    // Format date as dd/mm/yyyy
-                    const day = String(uploadDate.getDate()).padStart(2, '0');
-                    const month = String(uploadDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-                    const year = uploadDate.getFullYear();
-                    const formattedDate = `${day}/${month}/${year}`;
-                    
-                    const timeAgoText = timeAgo(uploadDate);
-                    document.getElementById('upload-time').textContent = `Uploaded: ${formattedDate} (${timeAgoText})`;
+                    document.getElementById('upload-time').textContent = `Uploaded: ${timeAgo(uploadDate)}`;
                 } else {
                     document.getElementById('upload-time').textContent = "Uploaded: N/A";
                 }
-                
+
                 document.getElementById('likes').textContent = `Likes: ${updatedData.likes || 0}`;
+
                 await loadChannelInfo(userId);
                 videoPlayer.play();
+
+                // Load related videos based on the video's category
+                await loadRelatedVideos(videoData.category);
             } else {
                 console.error("No such video found!");
             }
@@ -279,7 +320,7 @@
             console.error(`Error fetching video: ${error.message}`);
         }
     }
-    
+
     async function loadChannelInfo(userId) {
         try {
             const channelDocRef = doc(db, "channels", userId);
@@ -297,16 +338,47 @@
             console.error(`Error loading channel info: ${error.message}`);
         }
     }
-    
+
+    async function loadRelatedVideos(category) {
+        try {
+            const q = query(collection(db, "videos"), where("category", "==", category));
+            const querySnapshot = await getDocs(q);
+            relatedVideosContainer.innerHTML = '';  // Clear any existing videos
+            
+            querySnapshot.forEach(doc => {
+                const videoData = doc.data();
+                const videoThumbnail = document.createElement('div');
+                videoThumbnail.classList.add('related-video');
+                videoThumbnail.innerHTML = `
+                    <img src="${videoData.thumbnailUrl}" alt="${videoData.title}" />
+                    <div class="related-video-title">${videoData.title}</div>
+                `;
+                videoThumbnail.addEventListener('click', () => {
+                    window.location.href = `?videoId=${doc.id}`;
+                });
+
+                relatedVideosContainer.appendChild(videoThumbnail);
+            });
+        } catch (error) {
+            console.error('Error loading related videos:', error);
+        }
+    }
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
             checkSubscriptionStatus(user.uid);
             subscribeButton.addEventListener('click', () => {
                 toggleSubscription(user.uid);
             });
+        } else {
+            subscribeButton.addEventListener('click', () => {
+                alert("Please log in to subscribe to this channel.");
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider).catch(error => console.error("Login failed:", error.message));
+            });
         }
     });
-    
+
     async function checkSubscriptionStatus(currentUserId) {
         try {
             const userDocRef = doc(db, "users", currentUserId);
@@ -326,7 +398,7 @@
             console.error("Error checking subscription status:", error.message);
         }
     }
-    
+
     async function toggleSubscription(currentUserId) {
         try {
             const channelDocRef = doc(db, "channels", userId);
@@ -360,11 +432,33 @@
             console.error(`Error toggling subscription: ${error.message}`);
         }
     }
-    
-    // Load video on page load
+
+    shareBtn.addEventListener('click', async () => {
+        const videoUrl = window.location.href;
+        const videoTitleText = videoTitle.textContent;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: videoTitleText,
+                    url: videoUrl,
+                });
+                console.log('Video shared successfully!');
+            } catch (error) {
+                console.error('Error sharing video:', error.message);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(videoUrl);
+                alert('Video URL copied to clipboard!');
+            } catch (error) {
+                console.error('Failed to copy:', error.message);
+            }
+        }
+    });
+
     loadVideo();
-    </script>
-    
+</script>
 
 </body>
 </html>
