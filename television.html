@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LookLike - Channel</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+        }
+
+        .channel-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: #1a1a1a;
+        }
+
+        .channel-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .channel-details {
+            flex-grow: 1;
+        }
+
+        .channel-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .subscriber-count {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .subscribe-button {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .filter-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        .filter-buttons button.active {
+            background-color: red;
+        }
+
+        .video-section {
+            padding: 20px;
+        }
+
+        .shorts-section {
+            padding: 20px;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card, .short-card {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .video-card img, .short-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 10px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .video-stats {
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="channel-header">
+        <img id="channel-logo" class="channel-logo" src="default-logo.png" alt="Channel Logo">
+        <div class="channel-details">
+            <div id="channel-name" class="channel-name">Channel Name</div>
+            <div id="subscriber-count" class="subscriber-count">0 subscribers</div>
+        </div>
+        <button id="subscribe-button" class="subscribe-button">Subscribe</button>
+    </div>
+
+    <div class="filter-buttons">
+        <button id="filter-all" class="filter-button active">All</button>
+        <button id="filter-popular" class="filter-button">Popular</button>
+        <button id="filter-new" class="filter-button">New</button>
+        <button id="filter-old" class="filter-button">Old</button>
+    </div>
+
+    <div class="video-section">
+        <h2>Videos</h2>
+        <div id="video-grid" class="video-grid">
+            <!-- Video cards will be loaded here -->
+        </div>
+    </div>
+
+    <div class="shorts-section">
+        <h2>Shorts</h2>
+        <div id="shorts-grid" class="video-grid">
+            <!-- Shorts cards will be loaded here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyDebZ98GjmX8gxYC4jI_gmiChm7TzFqsMg",
+            authDomain: "test-d6f13.firebaseapp.com",
+            projectId: "test-d6f13",
+            storageBucket: "test-d6f13.appspot.com",
+            messagingSenderId: "1043978393185",
+            appId: "1:1043978393185:web:a40e50c013d7869b8cfc20",
+            measurementId: "G-VLTFR2GXGS"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId');
+        let currentUser;
+    
+        const channelLogo = document.getElementById('channel-logo');
+        const channelName = document.getElementById('channel-name');
+        const subscriberCount = document.getElementById('subscriber-count');
+        const subscribeButton = document.getElementById('subscribe-button');
+        const videoGrid = document.getElementById('video-grid');
+        const shortsGrid = document.getElementById('shorts-grid');
+        const filterButtons = document.querySelectorAll('.filter-button');
+    
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user.uid;
+                subscribeButton.addEventListener('click', () => toggleSubscription(user.uid));
+            } else {
+                subscribeButton.addEventListener('click', () => {
+                    alert("Please log in to subscribe to this channel.");
+                    const provider = new GoogleAuthProvider();
+                    signInWithPopup(auth, provider).catch(error => console.error("Login failed:", error.message));
+                });
+            }
+        });
+        
+    
+        async function loadChannelDetails() {
+            try {
+                const channelDocRef = doc(db, "channels", userId);
+                const channelDoc = await getDoc(channelDocRef);
+    
+                if (channelDoc.exists()) {
+                    const channelData = channelDoc.data();
+                    channelLogo.src = channelData.channelLogo || "default-logo.png";
+                    channelName.textContent = channelData.channelName || "Unknown Channel";
+                    subscriberCount.textContent = `${channelData.subscriberCount || 0} subscribers`;
+                }
+            } catch (error) {
+                console.error("Error loading channel details:", error.message);
+            }
+        }
+        
+    
+        async function loadVideos(filter = "all") {
+    try {
+        const videoQuery = query(
+            collection(db, "videos"),
+            where("userId", "==", userId), // Match Firestore field `userId` instead of `channelId`
+            ...(filter === "popular" ? [orderBy("likes", "desc")] : []),
+            ...(filter === "new" ? [orderBy("timestamp", "desc")] : []),
+            ...(filter === "old" ? [orderBy("timestamp", "asc")] : [])
+        );
+
+        const videoDocs = await getDocs(videoQuery);
+        videoGrid.innerHTML = ''; // Clear previous content
+
+        if (videoDocs.empty) {
+            videoGrid.innerHTML = "<p>No videos found.</p>";
+            return;
+        }
+
+        videoDocs.forEach((doc) => {
+            const videoData = doc.data();
+            const videoElement = document.createElement('div');
+            videoElement.classList.add('video-card');
+            videoElement.innerHTML = `
+                <img src="${videoData.thumbnailUrl}" alt="${videoData.title}">
+                <div class="video-info">
+                    <div class="video-title">${videoData.title}</div>
+                    <div class="video-stats">${videoData.likes || 0} likes</div>
+                </div>
+            `;
+            videoElement.addEventListener('click', () => {
+                window.location.href = `video.html?videoId=${doc.id}`;
+            });
+            videoGrid.appendChild(videoElement);
+        });
+    } catch (error) {
+        console.error("Error loading videos:", error.message);
+    }
+}
+
+async function loadShorts() {
+    try {
+        const shortsQuery = query(
+            collection(db, "videos"),
+            where("userId", "==", userId),
+            where("isShort", "==", true) // Assuming `isShort` exists in your Firestore
+        );
+
+        const shortsDocs = await getDocs(shortsQuery);
+        shortsGrid.innerHTML = ''; // Clear previous content
+
+        if (shortsDocs.empty) {
+            shortsGrid.innerHTML = "<p>No shorts found.</p>";
+            return;
+        }
+
+        shortsDocs.forEach((doc) => {
+            const shortData = doc.data();
+            const shortElement = document.createElement('div');
+            shortElement.classList.add('short-card');
+            shortElement.innerHTML = `
+                <img src="${shortData.thumbnailUrl}" alt="${shortData.title}">
+                <div class="video-info">
+                    <div class="video-title">${shortData.title}</div>
+                </div>
+            `;
+            shortElement.addEventListener('click', () => {
+                window.location.href = `short.html?videoId=${doc.id}`;
+            });
+            shortsGrid.appendChild(shortElement);
+        });
+    } catch (error) {
+        console.error("Error loading shorts:", error.message);
+    }
+}
+
+    
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                const filter = button.id.replace('filter-', '');
+                loadVideos(filter);
+            });
+        });
+    
+        loadChannelDetails();
+        loadVideos();
+        loadShorts();
+    </script>
+    
+</body>
+</html>
