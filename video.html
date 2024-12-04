@@ -12,6 +12,23 @@
             background-color: #000;
         }
 
+        .channel-logo, .channel-name {
+    cursor: pointer; /* Indicates clickable */
+}
+
+.channel-name {
+    font-size: 16px;
+    color: #000;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.channel-name:hover {
+    text-decoration: underline; /* Optional hover effect */
+}
+
+
+
         .video-container {
             position: relative;
             width: 100%;
@@ -247,6 +264,15 @@
     const relatedVideosContainer = document.getElementById('related-videos');
     let isDescriptionExpanded = false;
 
+    channelLogo.addEventListener('click', () => {
+    window.location.href = `television.html?userId=${userId}`;
+});
+
+// Add navigation for channel name
+channelName.addEventListener('click', () => {
+    window.location.href = `television.html?userId=${userId}`;
+});
+
     // Toggle video description length
     moreButton.addEventListener('click', () => {
         if (isDescriptionExpanded) {
@@ -338,6 +364,8 @@
             console.error(`Error loading channel info: ${error.message}`);
         }
     }
+
+    
 
     async function loadRelatedVideos(category) {
         try {
