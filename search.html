@@ -235,7 +235,20 @@
         }
     });
 
+    async function checkMicPermission() {
+        try {
+            const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+            if (permissionStatus.state === 'denied') {
+                alert('Microphone access is denied. Please enable it in your browser settings.');
+            }
+        } catch (error) {
+            console.error('Permission check failed', error);
+        }
+    }
+
     micButton.addEventListener("click", () => {
+        checkMicPermission(); // Check permission before starting
+
         // Check if SpeechRecognition is available in the browser
         if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
             alert("Sorry, voice search is not supported in your browser.");
@@ -273,7 +286,6 @@
             };
         }
     });
-
 </script>
 
 </body>
