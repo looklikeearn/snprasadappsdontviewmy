@@ -159,6 +159,7 @@
   messagingSenderId: "976652364108",
   appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
   measurementId: "G-RPHVKH612W"
+
     };
 
     const app = initializeApp(firebaseConfig);
@@ -235,20 +236,7 @@
         }
     });
 
-    async function checkMicPermission() {
-        try {
-            const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
-            if (permissionStatus.state === 'denied') {
-                alert('Microphone access is denied. Please enable it in your browser settings.');
-            }
-        } catch (error) {
-            console.error('Permission check failed', error);
-        }
-    }
-
     micButton.addEventListener("click", () => {
-        checkMicPermission(); // Check permission before starting
-
         // Check if SpeechRecognition is available in the browser
         if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
             alert("Sorry, voice search is not supported in your browser.");
@@ -272,7 +260,7 @@
 
             recognition.onerror = event => {
                 if (event.error === 'not-allowed') {
-                    alert("Microphone access is denied. Please enable microphone permissions.");
+                    alert("You denied microphone access. Please enable microphone permissions manually.");
                 } else {
                     alert("Sorry, voice search failed. Please try again.");
                 }
@@ -286,6 +274,7 @@
             };
         }
     });
+
 </script>
 
 </body>
