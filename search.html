@@ -109,13 +109,26 @@
             font-size: 22px;
             margin-bottom: 4px;
         }
+        #micButton {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        #micButton.mic-on {
+            color: rgb(61, 211, 61); /* Color when microphone is ON */
+        }
+        #micButton.mic-off {
+            color: rgb(255, 255, 255); /* Color when microphone is OFF */
+        }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Search Videos</h1>
-    <button id="micButton" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+    <button id="micButton" class="mic-off">
         <i class="fas fa-microphone"></i>
     </button>
 </header>
@@ -138,7 +151,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
   authDomain: "look-like-e8819.firebaseapp.com",
@@ -149,7 +161,6 @@
   measurementId: "G-RPHVKH612W"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -164,7 +175,7 @@
 
         querySnapshot.forEach(doc => {
             const video = doc.data();
-            video.id = doc.id; // Include the document ID for redirection
+            video.id = doc.id;
             videos.push(video);
         });
 
@@ -200,7 +211,7 @@
             videoLink.className = "video-card";
 
             const thumbnail = document.createElement("img");
-            thumbnail.src = video.thumbnailUrl || "placeholder.jpg"; // Placeholder if no thumbnail
+            thumbnail.src = video.thumbnailUrl || "placeholder.jpg";
             videoLink.appendChild(thumbnail);
 
             const infoDiv = document.createElement("div");
@@ -215,33 +226,54 @@
         });
     }
 
-    // Event Listeners
     searchInput.addEventListener("input", () => {
         const queryText = searchInput.value.trim();
         if (queryText) {
             searchVideos(queryText);
         } else {
-            resultsDiv.innerHTML = ""; // Clear results if input is empty
+            resultsDiv.innerHTML = "";
         }
     });
 
-    // Voice Search Feature
     micButton.addEventListener("click", () => {
+        // Check if SpeechRecognition is available in the browser
+        if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            alert("Sorry, voice search is not supported in your browser.");
+            return;
+        }
+
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = "en-US";
 
-        recognition.start();
+        if (micButton.classList.contains("mic-off")) {
+            micButton.classList.remove("mic-off");
+            micButton.classList.add("mic-on");
 
-        recognition.onresult = event => {
-            const spokenText = event.results[0][0].transcript;
-            searchInput.value = spokenText;
-            searchVideos(spokenText);
-        };
+            recognition.start();
 
-        recognition.onerror = () => {
-            alert("Sorry, voice search failed. Please try again.");
-        };
+            recognition.onresult = event => {
+                const spokenText = event.results[0][0].transcript;
+                searchInput.value = spokenText;
+                searchVideos(spokenText);
+            };
+
+            recognition.onerror = event => {
+                if (event.error === 'not-allowed') {
+                    alert("Microphone access is denied. Please enable microphone permissions.");
+                } else {
+                    alert("Sorry, voice search failed. Please try again.");
+                }
+                micButton.classList.remove("mic-on");
+                micButton.classList.add("mic-off");
+            };
+
+            recognition.onend = () => {
+                micButton.classList.remove("mic-on");
+                micButton.classList.add("mic-off");
+            };
+        }
     });
+
 </script>
 
 </body>
