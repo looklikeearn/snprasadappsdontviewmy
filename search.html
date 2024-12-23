@@ -3,99 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search - LookLike</title>
-    <!-- Font Awesome CDN for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Search Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f9f9f9; 
         }
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+        header { 
+            background-color: #ff0000; 
+            color: white; 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
         }
-        .search-input {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            outline: none;
+        h1 { 
+            margin: 0; 
         }
-        .search-button {
-            padding: 10px;
-            border: none;
-            background-color: #FF0000; /* LookLike red color */
-            color: white;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-left: 5px;
+        .container { 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: auto; 
         }
-        .search-results {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .search-bar { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
         }
-        .video-item {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #fff;
-            transition: box-shadow 0.3s ease;
+        input[type="text"] { 
+            flex: 1; 
+            padding: 10px; 
+            font-size: 16px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px 0 0 8px; 
+            outline: none; 
         }
-        .video-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .search-bar button { 
+            background-color: #ff0000; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            border-radius: 0 8px 8px 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
         }
-        .video-thumbnail {
-            width: 100%;
-            aspect-ratio: 16 / 9; /* 16:9 aspect ratio */
-            overflow: hidden;
+        .search-bar button:hover {
+            background-color: #cc0000;
         }
-        .video-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Cover the area */
+        .video-card { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding: 10px; 
+            background-color: white; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+            text-decoration: none; 
+            color: inherit;
         }
-        .video-info {
-            padding: 10px;
+        .video-card:hover {
+            background-color: #f1f1f1;
         }
-        .previous-searches {
-            margin-top: 20px;
+        .video-card img { 
+            width: 120px; 
+            height: 80px; 
+            object-fit: cover; 
+            border-radius: 4px; 
         }
-        .previous-searches p {
-            margin: 0;
-            cursor: pointer;
-            color: #007bff;
-            text-decoration: underline;
+        .video-info { 
+            margin-left: 10px; 
+        }
+        .video-info h3 { 
+            margin: 0; 
+            font-size: 18px; 
+            color: #333; 
+        }
+        footer { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            background-color: #ff0000; 
+            padding: 10px; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center;
+        }
+        footer a { 
+            color: white; 
+            text-decoration: none; 
+            font-size: 18px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        footer a:hover {
+            color: #ddd;
+        }
+        footer i {
+            font-size: 22px;
+            margin-bottom: 4px;
         }
     </style>
 </head>
 <body>
 
-<div class="search-container">
-    <input type="text" id="search-input" class="search-input" placeholder="Search for videos...">
-    <button id="search-button" class="search-button">Search</button>
+<header>
+    <h1>Search Videos</h1>
+    <button id="micButton" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+        <i class="fas fa-microphone"></i>
+    </button>
+</header>
+
+<div class="container">
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search videos by title, tags, or description..." />
+        <button id="searchButton"><i class="fas fa-search"></i></button>
+    </div>
+    <div id="results"></div>
 </div>
 
-<div class="search-results" id="search-results">
-    <!-- Search results will be dynamically inserted here -->
-</div>
-
-<div class="previous-searches" id="previous-searches">
-    <!-- Previous searches will be displayed here -->
-</div>
+<footer>
+    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    <a href="upload.html"><i class="fas fa-upload"></i> Upload</a>
+    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+</footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, or } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
   authDomain: "look-like-e8819.firebaseapp.com",
@@ -109,109 +152,96 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
-    const searchButton = document.getElementById('search-button');
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-    const previousSearches = document.getElementById('previous-searches');
+    const searchInput = document.getElementById("searchInput");
+    const resultsDiv = document.getElementById("results");
+    const micButton = document.getElementById("micButton");
 
-    // Store previous searches
-    let searches = JSON.parse(localStorage.getItem('searches')) || [];
+    async function fetchVideos() {
+        const videosRef = collection(db, "videos");
+        const querySnapshot = await getDocs(videosRef);
+        const videos = [];
 
-    function updatePreviousSearches() {
-        previousSearches.innerHTML = '';
-        searches.forEach(search => {
-            const searchItem = document.createElement('p');
-            searchItem.textContent = search;
-            searchItem.onclick = () => {
-                searchInput.value = search;
-                searchVideos(search);
-            };
-            previousSearches.appendChild(searchItem);
+        querySnapshot.forEach(doc => {
+            const video = doc.data();
+            video.id = doc.id; // Include the document ID for redirection
+            videos.push(video);
         });
+
+        return videos;
     }
 
-    // Function to load videos based on search query
     async function searchVideos(queryText) {
-        // Ensure case-insensitive search
-        const lowerCaseQuery = queryText.toLowerCase();
+        const videos = await fetchVideos();
+        const lowerQuery = queryText.toLowerCase();
 
-        // Add the current search to localStorage if it's not already there
-        if (!searches.includes(queryText)) {
-            searches.push(queryText);
-            localStorage.setItem('searches', JSON.stringify(searches));
-            updatePreviousSearches();
-        }
-
-        try {
-            const q = query(collection(db, "videos"), 
-                or(
-                    where("title", "==", lowerCaseQuery), 
-                    where("description", "array-contains", lowerCaseQuery), // Search for a specific word in description
-                    where("category", "==", lowerCaseQuery),
-                    where("tags", "array-contains", lowerCaseQuery) // Assuming tags is an array
-                )
+        const filteredVideos = videos.filter(video => {
+            return (
+                (video.title && video.title.toLowerCase().includes(lowerQuery)) ||
+                (video.description && video.description.toLowerCase().includes(lowerQuery)) ||
+                (video.tags && video.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
             );
-
-            const querySnapshot = await getDocs(q);
-            if (querySnapshot.empty) {
-                searchResults.innerHTML = '<p>No results found.</p>';
-                return;
-            }
-            searchResults.innerHTML = ''; // Clear previous results
-            querySnapshot.forEach(doc => {
-                const videoData = doc.data();
-                const { title, thumbnailUrl, views = '0', timeAgo = 'N/A', likes = '0' } = videoData;
-                displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes);
-            });
-        } catch (error) {
-            console.error('Error searching videos:', error);
-        }
-    }
-
-    // Function to display a video thumbnail on the page
-    function displayVideoThumbnail(videoId, title, thumbnailUrl, views, timeAgo, likes) {
-        const videoItem = document.createElement('div');
-        videoItem.className = 'video-item';
-        videoItem.innerHTML = `
-            <div class="video-thumbnail">
-                <img src="${thumbnailUrl}" alt="${title}">
-            </div>
-            <div class="video-info">
-                <div class="video-title">${title}</div>
-                <div class="video-meta">
-                    <span>${views} views</span> • 
-                    <span>${timeAgo}</span> • 
-                    <span>${likes} likes</span>
-                </div>
-            </div>
-        `;
-        videoItem.addEventListener('click', () => {
-            window.location.href = `video.html?videoId=${videoId}`;
         });
-        searchResults.appendChild(videoItem);
+
+        displayResults(filteredVideos);
     }
 
-    // Event listener for search button
-    searchButton.addEventListener('click', () => {
+    function displayResults(videos) {
+        resultsDiv.innerHTML = "";
+
+        if (videos.length === 0) {
+            resultsDiv.textContent = "No videos found.";
+            return;
+        }
+
+        videos.forEach(video => {
+            const videoLink = document.createElement("a");
+            videoLink.href = `video.html?videoId=${video.id}`;
+            videoLink.className = "video-card";
+
+            const thumbnail = document.createElement("img");
+            thumbnail.src = video.thumbnailUrl || "placeholder.jpg"; // Placeholder if no thumbnail
+            videoLink.appendChild(thumbnail);
+
+            const infoDiv = document.createElement("div");
+            infoDiv.className = "video-info";
+
+            const title = document.createElement("h3");
+            title.textContent = video.title;
+            infoDiv.appendChild(title);
+
+            videoLink.appendChild(infoDiv);
+            resultsDiv.appendChild(videoLink);
+        });
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", () => {
         const queryText = searchInput.value.trim();
         if (queryText) {
             searchVideos(queryText);
         } else {
-            alert("Please enter a search term.");
+            resultsDiv.innerHTML = ""; // Clear results if input is empty
         }
     });
 
-    // Optional: Search when pressing "Enter"
-    searchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            searchButton.click();
-        }
-    });
+    // Voice Search Feature
+    micButton.addEventListener("click", () => {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
 
-    // Update previous searches on page load
-    updatePreviousSearches();
+        recognition.start();
+
+        recognition.onresult = event => {
+            const spokenText = event.results[0][0].transcript;
+            searchInput.value = spokenText;
+            searchVideos(spokenText);
+        };
+
+        recognition.onerror = () => {
+            alert("Sorry, voice search failed. Please try again.");
+        };
+    });
 </script>
 
 </body>
