@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shorts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        
+        header { 
+            background-color: #ff0000; 
+            color: white; 
+            padding: 10px 20px; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fav-btn {
+            background-color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .fav-btn.active {
+            background-color: #4caf50; /* ON state color */
+        }
+
+        .fav-btn i {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 60px - 50px); /* Adjusting height: full viewport height minus header and footer heights */
+            margin-top: 60px; /* Offset for the fixed header */
+        }
+
+        .short-thumbnail { 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer; 
+        }
+
+        .short-thumbnail img { 
+            width: 150px; 
+            height: 250px; 
+            object-fit: cover; 
+            border-radius: 10px;
+        }
+
+        .short-thumbnail .details {
+            flex: 1;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        footer { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            background-color: #ff0000; 
+            padding: 10px; 
+            display: flex; 
+            justify-content: space-around;
+            z-index: 100;
+        }
+
+        footer a { color: white; text-decoration: none; }
+
+        #speedControl {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            z-index: 101;
+            background-color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none; /* Initially hidden */
+        }
+
+        #speedControl label {
+            margin-right: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        #swipeSpeed {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>
+        <span>Shorts</span>
+        <button class="fav-btn" id="favBtn">
+            <i class="fas fa-heart"></i>
+        </button>
+    </h1>
+</header>
+
+<div id="speedControl">
+    <label for="swipeSpeed">Swipe Speed:</label>
+    <select id="swipeSpeed">
+        <option value="0.25">0.25x</option>
+        <option value="0.5">0.5x</option>
+        <option value="1">1x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2" selected>2x</option>
+        <option value="3">3x</option>
+        <option value="4">4x</option>
+        <option value="5">5x</option>
+    </select>
+</div>
+
+<div class="container" id="shortsContainer">
+    <!-- Thumbnails will be displayed here -->
+</div>
+
+<footer>
+    <a href="index.html">Home</a>
+    <a href="upload.html">Upload</a>
+    <a href="profile.html">Profile</a>
+</footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+        authDomain: "look-like-e8819.firebaseapp.com",
+        projectId: "look-like-e8819",
+        storageBucket: "look-like-e8819.appspot.com",
+        messagingSenderId: "976652364108",
+        appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+        measurementId: "G-RPHVKH612W"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const shortsContainer = document.getElementById('shortsContainer');
+    const favBtn = document.getElementById('favBtn');
+    const speedControl = document.getElementById('speedControl');
+    const speedDropdown = document.getElementById('swipeSpeed');
+
+    let isFavActive = false;
+    let swipeSpeed = 2;  // Default swipe speed
+    let scrollPosition = 0;
+    let containerHeight = 0;
+    let shortsHeight = 0;
+    let scrollInterval;
+    let pressTimer;
+
+    // Toggle button ON/OFF state
+    favBtn.addEventListener('click', () => {
+        if (isFavActive) {
+            clearInterval(scrollInterval);
+            favBtn.classList.remove('active');
+            isFavActive = false;
+        } else {
+            favBtn.classList.add('active');
+            isFavActive = true;
+            startAutoScroll();
+        }
+    });
+
+    // Long press to show the dropdown menu
+    favBtn.addEventListener('mousedown', () => {
+        pressTimer = setTimeout(() => {
+            speedControl.style.display = 'block'; // Show dropdown
+        }, 1000); // Trigger after 1 second of long press
+    });
+
+    favBtn.addEventListener('mouseup', () => {
+        clearTimeout(pressTimer);  // Cancel long press action if mouse is released
+    });
+
+    // Hide dropdown when user selects a value
+    speedDropdown.addEventListener('change', (event) => {
+        swipeSpeed = parseFloat(event.target.value);
+        alert(`Swipe speed set to: ${swipeSpeed}x`);
+        speedControl.style.display = 'none'; // Hide dropdown after selection
+    });
+
+    // Fetch shorts data from Firebase
+    async function fetchShorts() {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'shorts'));
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const thumbnail = data.thumbnailUrl || 'default-thumbnail.jpg';
+                const title = data.title || 'Untitled';
+
+                const shortDiv = document.createElement('div');
+                shortDiv.className = 'short-thumbnail';
+
+                shortDiv.innerHTML = `
+                    <img src="${thumbnail}" alt="Short Thumbnail">
+                    <div class="details">${title}</div>
+                `;
+
+                shortDiv.addEventListener('click', () => {
+                    window.location.href = `shorts.html?shortId=${doc.id}`;
+                });
+
+                shortsContainer.appendChild(shortDiv);
+            });
+
+            containerHeight = shortsContainer.offsetHeight;
+            shortsHeight = shortsContainer.scrollHeight;
+
+            if (isFavActive) {
+                startAutoScroll();
+            }
+        } catch (error) {
+            console.error("Error fetching shorts: ", error);
+        }
+    }
+
+    fetchShorts();
+
+    // Automatic scroll logic
+    function startAutoScroll() {
+        scrollInterval = setInterval(() => {
+            if (scrollPosition >= shortsHeight - containerHeight) {
+                scrollPosition = 0;
+            } else {
+                scrollPosition += swipeSpeed;
+            }
+            shortsContainer.scrollTop = scrollPosition;
+        }, 20);
+    }
+</script>
+
+</body>
+</html>
