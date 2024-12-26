@@ -48,6 +48,20 @@
             color: #333;
         }
 
+        .speed-btn {
+            background-color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .speed-btn i {
+            font-size: 24px;
+            color: #333;
+        }
+
         .container {
             display: flex;
             flex-direction: column;
@@ -130,6 +144,10 @@
         <button class="fav-btn" id="favBtn">
             <i class="fas fa-heart"></i>
         </button>
+        <!-- Speed Button on the right side -->
+        <button class="speed-btn" id="speedBtn">
+            <i class="fas fa-tachometer-alt"></i>  <!-- Speed icon -->
+        </button>
     </h1>
 </header>
 
@@ -176,6 +194,7 @@
 
     const shortsContainer = document.getElementById('shortsContainer');
     const favBtn = document.getElementById('favBtn');
+    const speedBtn = document.getElementById('speedBtn');
     const speedControl = document.getElementById('speedControl');
     const speedDropdown = document.getElementById('swipeSpeed');
 
@@ -187,7 +206,7 @@
     let scrollInterval;
     let pressTimer;
 
-    // Toggle button ON/OFF state
+    // Toggle button ON/OFF state for favorite button
     favBtn.addEventListener('click', () => {
         if (isFavActive) {
             clearInterval(scrollInterval);
@@ -200,15 +219,9 @@
         }
     });
 
-    // Long press to show the dropdown menu
-    favBtn.addEventListener('mousedown', () => {
-        pressTimer = setTimeout(() => {
-            speedControl.style.display = 'block'; // Show dropdown
-        }, 1000); // Trigger after 1 second of long press
-    });
-
-    favBtn.addEventListener('mouseup', () => {
-        clearTimeout(pressTimer);  // Cancel long press action if mouse is released
+    // Show speed control dropdown when speed button is clicked
+    speedBtn.addEventListener('click', () => {
+        speedControl.style.display = speedControl.style.display === 'block' ? 'none' : 'block';
     });
 
     // Hide dropdown when user selects a value
