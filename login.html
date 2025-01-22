@@ -12,70 +12,80 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      background-color: #f0f2f5;
+      background-color: #f9f9f9;
     }
     .container {
-      width: 350px;
-      padding: 20px;
+      width: 400px;
+      padding: 30px;
       background: #ffffff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
       text-align: center;
     }
     h2 {
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      font-size: 24px;
     }
     input[type="email"], input[type="password"], button {
       width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ddd;
       font-size: 16px;
     }
     button {
-      background-color: #007bff;
+      background-color: #4caf50;
       color: #ffffff;
       border: none;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #45a049;
     }
     .switch-link, .forgot-link {
       display: block;
-      margin: 12px 0;
+      margin: 15px 0;
       font-size: 14px;
       color: #007bff;
       cursor: pointer;
       text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .switch-link:hover, .forgot-link:hover {
+      color: #0056b3;
+    }
+    .error-message, .success-message {
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: left;
     }
     .error-message {
       color: red;
-      font-size: 14px;
-      margin-top: 5px;
+    }
+    .success-message {
+      color: green;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2 id="form-title">Sign In</h2>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
     <button id="action-btn">Sign In</button>
     <span class="error-message" id="error-message"></span>
+    <span class="success-message" id="success-message"></span>
     <a class="forgot-link" id="forgot-password-link">Forgot Password?</a>
     <a class="switch-link" id="switch-link">Don't have an account? Sign Up</a>
   </div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
-    // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
   authDomain: "look-like-e8819.firebaseapp.com",
@@ -86,11 +96,9 @@
   measurementId: "G-RPHVKH612W"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Track if user is in Sign-Up or Sign-In mode
     let isSignUp = false;
 
     const formTitle = document.getElementById('form-title');
@@ -98,27 +106,47 @@
     const switchLink = document.getElementById('switch-link');
     const forgotPasswordLink = document.getElementById('forgot-password-link');
     const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+
+    // Custom error messages
+    const errorMessages = {
+      "auth/email-already-in-use": "This email is already in use. Please sign in.",
+      "auth/user-not-found": "No account found with this email. Please sign up first.",
+      "auth/wrong-password": "Incorrect password. Please try again.",
+      "auth/invalid-email": "Invalid email address. Please check and try again.",
+      "auth/network-request-failed": "Network error. Please check your internet connection.",
+    };
 
     // Handle Sign-In and Sign-Up
     actionBtn.addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      errorMessage.textContent = '';  // Clear previous error messages
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
+
+      if (!email || !password) {
+        errorMessage.textContent = 'Please fill in all fields.';
+        return;
+      }
 
       try {
         if (isSignUp) {
           // Sign up new user
           await createUserWithEmailAndPassword(auth, email, password);
-          alert("Account created successfully! You can now sign in.");
-          toggleSignInSignUp();  // Switch to sign-in mode
+          successMessage.textContent = 'Account created successfully! Please sign in.';
+          toggleSignInSignUp();
         } else {
           // Sign in existing user
           await signInWithEmailAndPassword(auth, email, password);
-          alert("Sign-in successful!");
-          window.location.href = 'index.html';  // Redirect to index.html after sign-in
+          successMessage.textContent = 'Sign-in successful! Redirecting...';
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
         }
       } catch (error) {
-        errorMessage.textContent = error.message;
+        // Display custom error message
+        const customMessage = errorMessages[error.code] || "Incorrect Password. Please try again.";
+        errorMessage.textContent = customMessage;
       }
     });
 
@@ -128,7 +156,8 @@
       formTitle.textContent = isSignUp ? 'Sign Up' : 'Sign In';
       actionBtn.textContent = isSignUp ? 'Sign Up' : 'Sign In';
       switchLink.textContent = isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-      errorMessage.textContent = '';  // Clear error message on switch
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
     }
 
     // Switch between Sign-In and Sign-Up
@@ -136,17 +165,18 @@
 
     // Handle Forgot Password
     forgotPasswordLink.addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       if (!email) {
-        errorMessage.textContent = 'Please enter your email address to reset your password.';
+        errorMessage.textContent = 'Please enter your email address.';
         return;
       }
 
       try {
         await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent! Check your inbox.');
+        successMessage.textContent = 'Password reset email sent! Check your inbox.';
       } catch (error) {
-        errorMessage.textContent = error.message;
+        const customMessage = errorMessages[error.code] || "Incorrect Password. Please try again.";
+        errorMessage.textContent = customMessage;
       }
     });
   </script>
