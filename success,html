@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Successful</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; text-align: center; }
+        header { background-color: #ff0000; color: white; padding: 20px; }
+        h1 { margin: 0; }
+        .container { padding: 20px; max-width: 600px; margin: auto; }
+        .message { font-size: 20px; margin: 20px 0; }
+        footer { position: fixed; bottom: 0; width: 100%; background-color: #ff0000; padding: 10px; }
+        footer a { color: white; text-decoration: none; margin: 0 15px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Upload Successful</h1>
+</header>
+
+<div class="container">
+    <div class="message" id="message"></div>
+</div>
+
+<footer>
+    <a href="index.html">Home</a>
+    <a href="upload.html">Upload New Video</a>
+    <a href="profile.html">Profile</a>
+</footer>
+
+<script>
+    // Get the RegNo from sessionStorage (it was saved in the previous page)
+    const regNo = sessionStorage.getItem('regNo');
+    
+    if (regNo) {
+        // Display the success message
+        document.getElementById('message').innerText = `Your video has been uploaded successfully! Your registration number is: ${regNo}`;
+    } else {
+        // In case there's no regNo (fallback error message)
+        document.getElementById('message').innerText = 'Thank You and Earn Now, (Important: tags and description is important)';
+    }
+</script>
+
+</body>
+</html>
