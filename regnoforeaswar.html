@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Videos and Shorts by RegNo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+
+    header {
+      background-color: #ff0000;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    input, button {
+      margin-bottom: 10px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .search-results {
+      margin-top: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .search-results h3 {
+      margin: 0 0 10px 0;
+    }
+
+    button {
+      background-color: #ff0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Search and Delete by RegNo</h1>
+</header>
+
+<div class="container">
+  <h3>Enter RegNo</h3>
+  <input type="number" id="regNoInput" placeholder="Enter registration number" />
+
+  <button id="searchBtn">Search</button>
+
+  <div id="searchResults" class="search-results" style="display: none;">
+    <h3>Details:</h3>
+    <p id="details"></p>
+    <button id="deleteBtn" style="background-color: #d9534f;">Delete</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+  import { getFirestore, doc, deleteDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDebZ98GjmX8gxYC4jI_gmiChm7TzFqsMg",
+    authDomain: "test-d6f13.firebaseapp.com",
+    projectId: "test-d6f13",
+    storageBucket: "test-d6f13.appspot.com",
+    messagingSenderId: "1043978393185",
+    appId: "1:1043978393185:web:a40e50c013d7869b8cfc20",
+    measurementId: "G-VLTFR2GXGS"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  const regNoInput = document.getElementById('regNoInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const searchResults = document.getElementById('searchResults');
+  const detailsElement = document.getElementById('details');
+  const deleteBtn = document.getElementById('deleteBtn');
+
+  let currentVideoId = null; // To store the ID of the video or short to be deleted
+  let currentCollection = null; // To store the collection (videos/shorts)
+
+  searchBtn.addEventListener('click', async () => {
+    const regNo = regNoInput.value.trim();
+    if (!regNo) {
+      alert('Please enter a valid RegNo.');
+      return;
+    }
+
+    try {
+      // Search for videos and shorts with the given RegNo
+      const videoQuery = query(collection(db, "videos"), where("regNo", "==", parseInt(regNo)));
+      const shortQuery = query(collection(db, "shorts"), where("regNo", "==", parseInt(regNo)));
+
+      const videoResults = await getDocs(videoQuery);
+      const shortResults = await getDocs(shortQuery);
+
+      if (!videoResults.empty) {
+        const docData = videoResults.docs[0];
+        currentVideoId = docData.id;
+        currentCollection = "videos";
+        const data = docData.data();
+        displayResults(data, regNo);
+      } else if (!shortResults.empty) {
+        const docData = shortResults.docs[0];
+        currentVideoId = docData.id;
+        currentCollection = "shorts";
+        const data = docData.data();
+        displayResults(data, regNo);
+      } else {
+        alert('No video or short found for this RegNo.');
+        searchResults.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Error fetching data. Check console for details.');
+    }
+  });
+
+  function displayResults(data, regNo) {
+    detailsElement.innerHTML = `
+      <strong>RegNo:</strong> ${regNo}<br />
+      <strong>Title:</strong> ${data.title}<br />
+      <strong>Category:</strong> ${data.category}<br />
+      <strong>Description:</strong> ${data.description}<br />
+      <strong>Tags:</strong> ${data.tags.join(', ')}<br />
+    `;
+    searchResults.style.display = 'block';
+  }
+
+  deleteBtn.addEventListener('click', async () => {
+    if (!currentVideoId || !currentCollection) {
+      alert('No video or short selected for deletion.');
+      return;
+    }
+
+    try {
+      // Delete the video or short
+      await deleteDoc(doc(db, currentCollection, currentVideoId));
+      alert('Video/Short successfully deleted.');
+      searchResults.style.display = 'none';
+    } catch (error) {
+      console.error('Error deleting video/short:', error);
+      alert('Error deleting video/short. Check console for details.');
+    }
+  });
+</script>
+
+</body>
+</html>
