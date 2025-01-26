@@ -19,8 +19,10 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
     <link rel="me" href="https://www.youtube.com/@LookLikeoffice" type="text/html">
     <link rel="me" href="https://x.com/looklikeearn" type="text/html">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
     <style>
-        body { 
+
+body { 
             font-family: Arial, sans-serif; 
             margin: 0; 
             padding: 0; 
@@ -101,11 +103,17 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
             flex-direction: column; 
             gap: 5px; 
         }
-        .video-title { 
-            font-size: 16px; 
-            font-weight: bold; 
-            color: #000;
-        }
+        .video-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    display: -webkit-box;          /* This makes the text behave like a flex container */
+    -webkit-line-clamp: 2;         /* Limits the number of lines to 2 */
+    -webkit-box-orient: vertical;  /* Specifies the box direction */
+    overflow: hidden;              /* Hides the content that overflows */
+    text-overflow: ellipsis;       /* Adds the '...' when the text overflows */
+}
+
         .video-meta { 
             font-size: 14px; 
             color: #606060; 
@@ -225,7 +233,41 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
                 align-self: flex-end;
             }
         }
-    </style>
+
+        .video-thumbnail {
+    position: relative;
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* Add this style for the regNo in the top-right corner */
+.regNo {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+        </style>
+
+
 </head>
 <body>
 
@@ -246,7 +288,6 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
     <a href="poll.html">Vote</a>
     <a href="live.html">Live</a>
     <a href="subscription.html">Subscriptions</a>
-    <a href="privacypolicy.html">Privacy</a>
 </nav>
 
 <!-- Overlay -->
@@ -262,7 +303,7 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
         <i class="fas fa-home"></i>
         <span>Home</span>
     </a>
-    <a href="woow.html">
+    <a href="shorts.html">
         <i class="fas fa-video"></i>
         <span>Shorts</span>
     </a>
@@ -279,85 +320,117 @@ Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { formatDistanceToNow } from 'https://cdn.skypack.dev/date-fns';  // Import date-fns for time formatting
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+const firebaseConfig = {
+  apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
   authDomain: "look-like-e8819.firebaseapp.com",
   projectId: "look-like-e8819",
   storageBucket: "look-like-e8819.appspot.com",
   messagingSenderId: "976652364108",
   appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
   measurementId: "G-RPHVKH612W"
-    };
+};
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    const videoListElement = document.getElementById('video-list');
+const videoListElement = document.getElementById('video-list');
 
-    // Function to load videos from Firestore
-    async function loadVideos() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "videos"));
-            if (querySnapshot.empty) {
-                console.log('No videos found.');
-                videoListElement.innerHTML = '<p>No videos available.</p>';
-                return;
-            }
-            querySnapshot.forEach(doc => {
-                const videoData = doc.data();
-                const { title, thumbnailUrl, views = '0', timeAgo = 'N/A', likes = '0' } = videoData;
-                displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes);
-            });
-        } catch (error) {
-            console.error('Error loading videos:', error);
-            videoListElement.innerHTML = '<p>Error loading videos. Please try again later.</p>';
+// Function to load videos from Firestore
+async function loadVideos() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "videos"));
+        if (querySnapshot.empty) {
+            console.log('No videos found.');
+            videoListElement.innerHTML = '<p>No videos available.</p>';
+            return;
         }
-    }
-
-    // Function to display a video thumbnail on the page
-    function displayVideoThumbnail(videoId, title, thumbnailUrl, views, timeAgo, likes) {
-        const videoItem = document.createElement('div');
-        videoItem.className = 'video-item';
-        videoItem.innerHTML = `
-            <div class="video-thumbnail">
-                <img src="${thumbnailUrl}" alt="${title}">
-            </div>
-            <div class="video-info">
-                <div class="video-title">${title}</div>
-                <div class="video-meta">
-                    <span>${views} views</span> • 
-                    <span>${timeAgo}</span> • 
-                    <span>${likes} likes</span>
-                </div>
-            </div>
-        `;
-        videoItem.addEventListener('click', () => {
-            window.location.href = `video.html?videoId=${videoId}`;
+        querySnapshot.forEach(doc => {
+            const videoData = doc.data();
+            const { title, thumbnailUrl, views = '0', timestamp, likes = '0', duration = 0, regNo = 'N/A' } = videoData;
+            const timeAgo = formatTimeAgo(timestamp);
+            displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes, duration, regNo);
         });
-        videoListElement.appendChild(videoItem);
+    } catch (error) {
+        console.error('Error loading videos:', error);
+        videoListElement.innerHTML = '<p>Error loading videos. Please try again later.</p>';
     }
+}
 
-    // Load video thumbnails regardless of authentication status
-    loadVideos();
+// Function to format timeAgo (time since upload)
+function formatTimeAgo(timestamp) {
+    if (timestamp) {
+        const timeAgo = formatDistanceToNow(new Date(timestamp.seconds * 1000), { addSuffix: true });
 
-    // Optional: Monitor authentication status for additional features
-    onAuthStateChanged(auth, user => {
-        if (user) {
-            console.log('User is logged in.');
-            // Additional logged-in user-specific logic can go here
-        } else {
-            console.log('User is not logged in.');
-            // Optional: Display a message or prompt to log in for additional features
-        }
+        // Remove the word "about" if it's present
+        return timeAgo.replace(/^about\s/, ''); // This will remove "about " from the start of the string
+    }
+    return 'N/A'; // Default fallback if no timestamp
+}
+
+// Function to display a video thumbnail on the page with regNo
+function displayVideoThumbnail(videoId, title, thumbnailUrl, views, timeAgo, likes, durationInSeconds, regNo) {
+    const formattedDuration = formatDuration(durationInSeconds);
+
+    const videoItem = document.createElement('div');
+    videoItem.className = 'video-item';
+    videoItem.innerHTML = `
+        <div class="video-thumbnail">
+            <img src="${thumbnailUrl}" alt="${title}">
+            <span class="video-duration">${formattedDuration}</span>
+            <span class="regNo">${regNo}</span> <!-- Displaying regNo -->
+        </div>
+        <div class="video-info">
+            <div class="video-title">${title}</div>
+            <div class="video-meta">
+                <span>${views} views</span> • 
+                <span>${timeAgo}</span> • 
+                <span>${likes} likes</span>
+            </div>
+        </div>
+    `;
+    videoItem.addEventListener('click', () => {
+        window.location.href = `video.html?videoId=${videoId}`;
     });
+    videoListElement.appendChild(videoItem);
+}
 
-    // Navigation Menu Functionality
-    const menuButton = document.getElementById('menu-button');
+// Function to format seconds to HH:MM:SS or MM:SS
+function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.round(seconds % 60); // Round the seconds to 2 digits
+
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    const formattedSeconds = secs < 10 ? `0${secs}` : secs;
+
+    if (hours > 0) {
+        const formattedHours = hours < 10 ? `0${hours}` : hours;
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    } else {
+        return `${formattedMinutes}:${formattedSeconds}`;
+    }
+}
+
+// Load video thumbnails regardless of authentication status
+loadVideos();
+
+// Optional: Monitor authentication status for additional features
+onAuthStateChanged(auth, user => {
+    if (user) {
+        console.log('User is logged in.');
+    } else {
+        console.log('User is not logged in.');
+    }
+});
+
+// Navigation Menu Functionality
+const menuButton = document.getElementById('menu-button');
     const navMenu = document.getElementById('nav-menu');
     const overlay = document.getElementById('overlay');
 
