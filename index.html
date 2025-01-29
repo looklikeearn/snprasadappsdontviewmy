@@ -78,10 +78,10 @@ body {
             display: flex; 
             flex-direction: column; 
             cursor: pointer; 
-            border: 1px solid #ddd; 
+            border: 1px solid #111111; 
             border-radius: 8px; 
             overflow: hidden; 
-            background-color: #fff; 
+            background-color: #f1d6d660; 
             transition: box-shadow 0.3s ease;
         }
         .video-item:hover {
@@ -342,25 +342,46 @@ const auth = getAuth(app);
 const videoListElement = document.getElementById('video-list');
 
 // Function to load videos from Firestore
+// Function to load videos
 async function loadVideos() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "videos"));
-        if (querySnapshot.empty) {
-            console.log('No videos found.');
-            videoListElement.innerHTML = '<p>No videos available.</p>';
-            return;
-        }
-        querySnapshot.forEach(doc => {
-            const videoData = doc.data();
-            const { title, thumbnailUrl, views = '0', timestamp, likes = '0', duration = 0, regNo = 'N/A' } = videoData;
-            const timeAgo = formatTimeAgo(timestamp);
-            displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes, duration, regNo);
+    const storedVideos = sessionStorage.getItem('videos');
+
+    if (storedVideos) {
+        // If videos are in session storage, load from there
+        const videoData = JSON.parse(storedVideos);
+        videoData.forEach(video => {
+            displayVideoThumbnail(video.id, video.title, video.thumbnailUrl, video.views, video.timeAgo, video.likes, video.duration, video.regNo);
         });
-    } catch (error) {
-        console.error('Error loading videos:', error);
-        videoListElement.innerHTML = '<p>Error loading videos. Please try again later.</p>';
+    } else {
+        try {
+            const querySnapshot = await getDocs(collection(db, "videos"));
+            if (querySnapshot.empty) {
+                console.log('No videos found.');
+                videoListElement.innerHTML = '<p>No videos available.</p>';
+                return;
+            }
+            const videos = [];
+            querySnapshot.forEach(doc => {
+                const videoData = doc.data();
+                const { title, thumbnailUrl, views = '0', timestamp, likes = '0', duration = 0, regNo = 'N/A' } = videoData;
+                const timeAgo = formatTimeAgo(timestamp);
+                const video = { id: doc.id, title, thumbnailUrl, views, timeAgo, likes, duration, regNo };
+                videos.push(video);
+                displayVideoThumbnail(doc.id, title, thumbnailUrl, views, timeAgo, likes, duration, regNo);
+            });
+            // Store the videos in session storage
+            sessionStorage.setItem('videos', JSON.stringify(videos));
+        } catch (error) {
+            console.error('Error loading videos:', error);
+            videoListElement.innerHTML = '<p>Error loading videos. Please try again later.</p>';
+        }
     }
 }
+
+// Replace current state with new URL without reloading
+window.history.replaceState(null, '', window.location.href);
+
+
 
 // Function to format timeAgo (time since upload)
 function formatTimeAgo(timestamp) {
