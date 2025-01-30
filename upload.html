@@ -99,165 +99,136 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
-    import { getFirestore, addDoc, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+import { getFirestore, addDoc, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+    authDomain: "look-like-e8819.firebaseapp.com",
+    projectId: "look-like-e8819",
+    storageBucket: "look-like-e8819.appspot.com",
+    messagingSenderId: "976652364108",
+    appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+    measurementId: "G-RPHVKH612W"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-    const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const auth = getAuth(app);
 
-    const videoInput = document.getElementById('videoInput');
-    const thumbnailInput = document.getElementById('thumbnailInput');
-    const videoTitleInput = document.getElementById('videoTitle');
-    const videoDescriptionInput = document.getElementById('videoDescription');
-    const videoTagsInput = document.getElementById('videoTags');
-    const videoTypeSelect = document.getElementById('videoType');
-    const videoCategorySelect = document.getElementById('videoCategory');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const captureThumbnailBtn = document.getElementById('captureThumbnail');
-    const statusElement = document.getElementById('status');
-    const videoPreview = document.getElementById('videoPreview');
-    const thumbnailCanvas = document.getElementById('thumbnailCanvas');
-    const progressBar = document.getElementById('progressBar');
+const videoInput = document.getElementById('videoInput');
+const thumbnailInput = document.getElementById('thumbnailInput');
+const videoTitleInput = document.getElementById('videoTitle');
+const videoDescriptionInput = document.getElementById('videoDescription');
+const videoTagsInput = document.getElementById('videoTags');
+const videoTypeSelect = document.getElementById('videoType');
+const videoCategorySelect = document.getElementById('videoCategory');
+const uploadBtn = document.getElementById('uploadBtn');
+const captureThumbnailBtn = document.getElementById('captureThumbnail');
+const statusElement = document.getElementById('status');
+const videoPreview = document.getElementById('videoPreview');
+const thumbnailCanvas = document.getElementById('thumbnailCanvas');
+const progressBar = document.getElementById('progressBar');
 
-    let videoFile = null;
-    let thumbnailFile = null;
+let videoFile = null;
+let thumbnailFile = null;
+let isUploading = false; // Prevent multiple uploads
 
-    videoInput.addEventListener('change', function() {
-        videoFile = videoInput.files[0];
-        if (videoFile) {
-            const videoURL = URL.createObjectURL(videoFile);
-            videoPreview.src = videoURL;
-            videoPreview.onloadedmetadata = () => {
-                const videoDuration = videoPreview.duration;
-                console.log(`Video duration: ${videoDuration} seconds`);
-                videoPreview.dataset.duration = videoDuration; // Store the duration temporarily for later use
-            };
-        }
-    });
-
-    thumbnailInput.addEventListener('change', function() {
-        thumbnailFile = thumbnailInput.files[0];
-    });
-
-    captureThumbnailBtn.addEventListener('click', function() {
-        const context = thumbnailCanvas.getContext('2d');
-        thumbnailCanvas.width = videoPreview.videoWidth;
-        thumbnailCanvas.height = videoPreview.videoHeight;
-        context.drawImage(videoPreview, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-        thumbnailCanvas.toBlob(blob => {
-            thumbnailFile = blob;
-            console.log('Thumbnail captured from paused video.');
-        }, 'image/jpeg');
-    });
-
-    async function generateAutomaticThumbnail() {
-        return new Promise((resolve, reject) => {
-            videoPreview.currentTime = 2; // Seek to 2 seconds
-
-            videoPreview.onseeked = () => {
-                const context = thumbnailCanvas.getContext('2d');
-                thumbnailCanvas.width = videoPreview.videoWidth;
-                thumbnailCanvas.height = videoPreview.videoHeight;
-                context.drawImage(videoPreview, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-                thumbnailCanvas.toBlob(blob => {
-                    resolve(blob);
-                }, 'image/jpeg');
-            };
-
-            videoPreview.onerror = (error) => {
-                reject(error);
-            };
-        });
+videoInput.addEventListener('change', function() {
+    videoFile = videoInput.files[0];
+    if (videoFile) {
+        const videoURL = URL.createObjectURL(videoFile);
+        videoPreview.src = videoURL;
+        videoPreview.onloadedmetadata = () => {
+            videoPreview.dataset.duration = videoPreview.duration; // Store duration
+        };
     }
+});
 
-    async function getNextRegNo() {
-        // Get the current maximum regNo in the regNo collection
-        const regNoRef = collection(db, 'regNo');
-        const q = query(regNoRef, orderBy('regNo', 'desc'), limit(1));
-        const querySnapshot = await getDocs(q);
+thumbnailInput.addEventListener('change', function() {
+    thumbnailFile = thumbnailInput.files[0];
+});
 
-        if (querySnapshot.empty) {
-            return 1; // Start from 1 if there are no records
-        } else {
-            const lastRegNo = querySnapshot.docs[0].data().regNo;
-            return lastRegNo + 1; // Increment by 1 for the next register number
-        }
+captureThumbnailBtn.addEventListener('click', function() {
+    const context = thumbnailCanvas.getContext('2d');
+    thumbnailCanvas.width = videoPreview.videoWidth;
+    thumbnailCanvas.height = videoPreview.videoHeight;
+    context.drawImage(videoPreview, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+    thumbnailCanvas.toBlob(blob => {
+        thumbnailFile = blob;
+        console.log('Thumbnail captured from paused video.');
+    }, 'image/jpeg');
+});
+
+async function generateAutomaticThumbnail() {
+    return new Promise((resolve, reject) => {
+        videoPreview.currentTime = 2; // Seek to 2 seconds
+        videoPreview.onseeked = () => {
+            const context = thumbnailCanvas.getContext('2d');
+            thumbnailCanvas.width = videoPreview.videoWidth;
+            thumbnailCanvas.height = videoPreview.videoHeight;
+            context.drawImage(videoPreview, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+            thumbnailCanvas.toBlob(blob => {
+                resolve(blob);
+            }, 'image/jpeg');
+        };
+        videoPreview.onerror = (error) => reject(error);
+    });
+}
+
+async function getNextRegNo() {
+    const regNoRef = collection(db, 'regNo');
+    const q = query(regNoRef, orderBy('regNo', 'desc'), limit(1));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty ? 1 : querySnapshot.docs[0].data().regNo + 1;
+}
+
+async function saveRegNo(regNo) {
+    try {
+        const regNoDocRef = doc(db, 'regNo', `regNo-${regNo}`);
+        await setDoc(regNoDocRef, { regNo: regNo, timestamp: new Date() });
+    } catch (error) {
+        console.error('Error saving regNo:', error);
     }
+}
 
-    async function saveRegNo(regNo) {
-        try {
-            const regNoDocRef = doc(db, 'regNo', `regNo-${regNo}`);
-            await setDoc(regNoDocRef, { regNo: regNo, timestamp: new Date() });
-            console.log(`RegNo ${regNo} saved successfully.`);
-        } catch (error) {
-            console.error('Error saving regNo:', error);
-        }
-    }
-
-    // Limit the video title to 160 characters (including letters, numbers, spaces, and special characters)
 videoTitleInput.addEventListener('input', () => {
-    const maxLength = 140;
-
-    // Truncate the value if it exceeds the maxLength
-    if (videoTitleInput.value.length > maxLength) {
-        videoTitleInput.value = videoTitleInput.value.slice(0, maxLength);
+    if (videoTitleInput.value.length > 140) {
+        videoTitleInput.value = videoTitleInput.value.slice(0, 140);
     }
 });
 
-   // Limit the video description to 6000 characters
 videoDescriptionInput.addEventListener('input', () => {
-    const maxLength = 6000;
-
-    // Truncate the value if it exceeds the maxLength
-    if (videoDescriptionInput.value.length > maxLength) {
-        videoDescriptionInput.value = videoDescriptionInput.value.slice(0, maxLength);
+    if (videoDescriptionInput.value.length > 6000) {
+        videoDescriptionInput.value = videoDescriptionInput.value.slice(0, 6000);
     }
 });
 
-
-// Clear sessionStorage on page load to reset the state after refresh
 sessionStorage.removeItem('uploadClicked');
 
-// Check if the upload button was clicked before in the current session
 if (!sessionStorage.getItem('uploadClicked')) {
-    // Show the upload button (in case the sessionStorage is empty)
-    uploadBtn.style.display = 'inline-block'; // Or 'block' depending on your layout
+    uploadBtn.style.display = 'inline-block';
 } else {
-    // Hide the upload button if it was clicked before in the current session
     uploadBtn.style.display = 'none';
 }
 
-// Add an event listener to handle the button click
-uploadBtn.addEventListener('click', function() {
-    // Set sessionStorage to remember that the button has been clicked
+uploadBtn.addEventListener('click', function () {
+    if (isUploading) return; // Prevent multiple clicks
+    isUploading = true;
     sessionStorage.setItem('uploadClicked', 'true');
-
-    // Hide the upload button after it is clicked
     uploadBtn.style.display = 'none';
 
-    // Your upload functionality goes here
     onAuthStateChanged(auth, (user) => {
         if (user) {
             uploadVideo(user);
         } else {
             statusElement.textContent = 'Please log in to upload videos.';
+            isUploading = false;
         }
     });
 });
-
 
 async function uploadVideo(user) {
     const videoTitle = videoTitleInput.value.trim();
@@ -265,36 +236,35 @@ async function uploadVideo(user) {
     const videoTags = videoTagsInput.value.trim().split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     const videoType = videoTypeSelect.value;
     const videoCategory = videoCategorySelect.value;
-    const videoDuration = videoPreview.dataset.duration; // Retrieve stored duration
+    const videoDuration = videoPreview.dataset.duration;
 
     if (!videoFile || videoTitle === "") {
         statusElement.textContent = 'Please provide both a video file and a title.';
+        isUploading = false;
         return;
     }
 
-    // Get the next register number
     const regNo = await getNextRegNo();
-
-    // Save the regNo to the `regNo` collection
     await saveRegNo(regNo);
 
     const videoName = `${Date.now()}_${videoFile.name}`;
     const videoRef = ref(storage, `${videoType}/${videoName}`);
     const uploadTask = uploadBytesResumable(videoRef, videoFile);
 
-    uploadTask.on('state_changed', 
+    uploadTask.on('state_changed',
         (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             progressBar.style.width = `${progress}%`;
             progressBar.textContent = `${Math.round(progress)}%`;
-        }, 
+        },
         (error) => {
             statusElement.textContent = `Error uploading video: ${error.message}`;
-        }, 
+            isUploading = false;
+        },
         async () => {
             const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-
             let thumbnailUrl = '';
+
             if (thumbnailFile) {
                 const thumbnailName = `${Date.now()}_thumbnail.jpg`;
                 const thumbnailRef = ref(storage, `thumbnails/${thumbnailName}`);
@@ -308,42 +278,25 @@ async function uploadVideo(user) {
                 thumbnailUrl = await getDownloadURL(thumbnailSnapshot.ref);
             }
 
-            try {
-                await addDoc(collection(db, videoType), {
-                    title: videoTitle,
-                    description: videoDescription,
-                    tags: videoTags,
-                    videoUrl: videoUrl,
-                    thumbnailUrl: thumbnailUrl,
-                    userId: user.uid,
-                    category: videoCategory,
-                    duration: videoDuration, // Save video duration here
-                    regNo: regNo, // Save the register number here
-                    timestamp: new Date()
-                });
-                statusElement.textContent = `Video uploaded successfully with RegNo: ${regNo}!`;
+            await addDoc(collection(db, videoType), {
+                title: videoTitle,
+                description: videoDescription,
+                tags: videoTags,
+                videoUrl: videoUrl,
+                thumbnailUrl: thumbnailUrl,
+                userId: user.uid,
+                category: videoCategory,
+                duration: videoDuration,
+                regNo: regNo,
+                timestamp: new Date()
+            });
 
-                // Redirect to the move_success.html page after successful upload
-                window.location.href = "success.html"; // This line redirects the user
-
-            } catch (error) {
-                console.error("Error saving video data: ", error);
-                statusElement.textContent = `Failed to save video data: ${error.message}`;
-            }
+            statusElement.textContent = `Video uploaded successfully with RegNo: ${regNo}!`;
+            window.location.href = "success.html";
         }
     );
 }
 
-
-    uploadBtn.addEventListener('click', function() {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                uploadVideo(user);
-            } else {
-                statusElement.textContent = 'Please log in to upload videos.';
-            }
-        });
-    });
 </script>
 
 
