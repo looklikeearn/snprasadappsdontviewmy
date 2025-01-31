@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - LookLikeEarn</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f9f9f9;
+            color: #333;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #ff4500;
+            margin-bottom: 15px;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f1f1;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .info span {
+            flex: 1;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Contact Us</h2>
+
+        <div class="info">
+            <span><strong>WhatsApp:</strong> +91 9042200706</span>
+            <button class="copy-btn" onclick="copyText('+91 9042200706')">Copy</button>
+        </div>
+
+        <div class="info">
+            <span><strong>Email:</strong> looklikeearn@gmail.com</span>
+            <button class="copy-btn" onclick="copyText('looklikeearn@gmail.com')">Copy</button>
+        </div>
+    </div>
+
+    <script>
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied: ' + text);
+            }).catch(err => {
+                console.error('Error copying text: ', err);
+            });
+        }
+    </script>
+
+</body>
+</html>
