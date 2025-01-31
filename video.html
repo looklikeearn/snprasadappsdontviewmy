@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LookLike - Video</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body, html {
             margin: 0;
@@ -212,9 +213,15 @@
         </div>
 
         <div class="actions">
-            <div id="likeBtn" class="action-button">👍 0</div>
-            <div id="unlikeBtn" class="action-button">👎 0</div>
-            <div id="shareBtn" class="action-button">Share</div>
+            <div id="likeBtn" class="action-button">
+                <i class="fas fa-thumbs-up"></i> <span id="likeCount"></span>
+            </div>
+            <div id="unlikeBtn" class="action-button">
+                <i class="fas fa-thumbs-down"></i> <span id="unlikeCount"></span>
+            </div>
+            <div id="shareBtn" class="action-button">
+                <i class="fas fa-share"></i> Share
+            </div>
         </div>
 
         <div class="video-details">
@@ -235,9 +242,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-    
+
     // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
@@ -265,15 +272,13 @@
     let isDescriptionExpanded = false;
 
     channelLogo.addEventListener('click', () => {
-    window.location.href = `television.html?userId=${userId}`;
-});
+        window.location.href = `television.html?userId=${userId}`;
+    });
 
-// Add navigation for channel name
-channelName.addEventListener('click', () => {
-    window.location.href = `television.html?userId=${userId}`;
-});
+    channelName.addEventListener('click', () => {
+        window.location.href = `television.html?userId=${userId}`;
+    });
 
-    // Toggle video description length
     moreButton.addEventListener('click', () => {
         if (isDescriptionExpanded) {
             videoDescription.style.maxHeight = '40px';
@@ -288,7 +293,21 @@ channelName.addEventListener('click', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId');
     let userId;
-    
+
+    async function saveViewingHistory(user, videoId, videoTitleText) {
+        try {
+            const historyRef = doc(db, "users", user.uid, "viewingHistory", videoId);
+            await setDoc(historyRef, {
+                videoId: videoId,
+                videoTitle: videoTitleText,
+                viewedAt: new Date()
+            });
+            console.log('Viewing history saved successfully.');
+        } catch (error) {
+            console.error("Error saving viewing history:", error.message);
+        }
+    }
+
     function timeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         const intervals = [
@@ -307,6 +326,59 @@ channelName.addEventListener('click', () => {
         }
         return 'just now';
     }
+    
+    const likeBtn = document.getElementById('likeBtn');
+const unlikeBtn = document.getElementById('unlikeBtn');
+const likeCount = document.getElementById('likes');
+const videoDocRef = doc(db, "videos", videoId);
+
+let currentUserId = null;
+
+// Fetch user info
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUserId = user.uid;
+        checkUserReactionStatus(); // Check user reaction status on load
+    }
+});
+
+// Add event listener for the like button
+likeBtn.addEventListener('click', async () => {
+    try {
+        const videoDoc = await getDoc(videoDocRef); // Get the current video document
+        if (videoDoc.exists()) {
+            const data = videoDoc.data();
+            const userLikes = data.userLikes || {}; // Get the list of users who liked, default to empty object
+
+            // Check if the user has already liked the video
+            if (userLikes[currentUserId]) {
+                // User has already liked, so remove the like
+                await updateDoc(videoDocRef, {
+                    [`userLikes.${currentUserId}`]: deleteField(), // Remove the user's like
+                    likes: increment(-1), // Decrease like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'black'; // Reset like button color
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) - 1}`;
+            } else {
+                // User has not liked, so add the like
+                await updateDoc(videoDocRef, {
+                    [`userLikes.${currentUserId}`]: true, // Mark the user as having liked the video
+                    likes: increment(1), // Increase like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'blue'; // Highlight like button
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) + 1}`;
+            }
+        }
+    } catch (error) {
+        console.error("Error toggling like:", error.message);
+    }
+});
+
+
 
     async function loadVideo() {
         try {
@@ -337,7 +409,13 @@ channelName.addEventListener('click', () => {
                 await loadChannelInfo(userId);
                 videoPlayer.play();
 
-                // Load related videos based on the video's category
+                // Save viewing history if user is logged in
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        saveViewingHistory(user, videoId, videoData.title);
+                    }
+                });
+
                 await loadRelatedVideos(videoData.category);
             } else {
                 console.error("No such video found!");
@@ -364,8 +442,6 @@ channelName.addEventListener('click', () => {
             console.error(`Error loading channel info: ${error.message}`);
         }
     }
-
-    
 
     async function loadRelatedVideos(category) {
         try {
@@ -487,6 +563,7 @@ channelName.addEventListener('click', () => {
 
     loadVideo();
 </script>
+
 
 </body>
 </html>
