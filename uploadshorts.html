@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Video</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
+        header { background-color: #ff0000; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; }
+        .container { padding: 20px; max-width: 600px; margin: auto; }
+        input, button, select, textarea { margin-bottom: 10px; padding: 10px; width: 100%; box-sizing: border-box; }
+        video { width: 100%; height: auto; margin-bottom: 10px; }
+        footer { position: fixed; bottom: 0; width: 100%; background-color: #ff0000; padding: 10px; display: flex; justify-content: space-around; }
+        footer a { color: white; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <h1>Upload</h1>
+    </div>
+</header>
+
+<div class="container">
+    <h3>Video Title</h3>
+    <input type="text" id="videoTitle" placeholder="Enter video title" />
+    
+    <h3>Description</h3>
+    <textarea id="videoDescription" placeholder="Enter a description for your video"></textarea>
+    
+    <h3>Tags (comma separated)</h3>
+    <input type="text" id="videoTags" placeholder="Enter tags separated by commas" />
+
+    <h3>Video Type</h3>
+    <select id="videoType">
+        <option value="shorts">Shorts</option>
+    </select>
+
+    <h3>Category</h3>
+    <select id="videoCategory">
+        <option value="all">All</option>
+        <option value="trending">Trending</option>
+        <option value="music">Music</option>
+        <option value="cook">Cook</option>
+        <option value="movie">Movie</option>
+        <option value="news">News</option>
+        <option value="gaming">Gaming</option>
+        <option value="AI">AI</option>
+        <option value="sports">Sports</option>
+        <option value="studies">Studies</option>
+        <option value="fashions">Fashions</option>
+        <option value="vlogs">Vlogs</option>
+        <option value="biography">Biography</option>
+        <option value="Trolls">Trolls</option>
+        <option value="Folk">Folks</option>
+    </select>
+
+    <h3>Upload Video</h3>
+    <input type="file" id="videoInput" accept="video/*" />
+    
+    <h3>Upload Custom Thumbnail (Optional)</h3>
+    <input type="file" id="thumbnailInput" accept="image/*" />
+    
+    <button id="uploadBtn">Upload</button>
+    
+    <video id="videoPreview" controls></video>
+    <p id="status"></p>
+</div>
+
+<footer>
+    <a href="index.html">Home</a>
+    <a href="upload.html">Upload</a>
+    <a href="profile.html">Profile</a>
+</footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+    import { getFirestore, addDoc, collection, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+  authDomain: "look-like-e8819.firebaseapp.com",
+  projectId: "look-like-e8819",
+  storageBucket: "look-like-e8819.appspot.com",
+  messagingSenderId: "976652364108",
+  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+  measurementId: "G-RPHVKH612W"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    const videoInput = document.getElementById('videoInput');
+    const thumbnailInput = document.getElementById('thumbnailInput');
+    const videoTitleInput = document.getElementById('videoTitle');
+    const videoDescriptionInput = document.getElementById('videoDescription');
+    const videoTagsInput = document.getElementById('videoTags');
+    const videoTypeSelect = document.getElementById('videoType');
+    const videoCategorySelect = document.getElementById('videoCategory');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusElement = document.getElementById('status');
+    const videoPreview = document.getElementById('videoPreview');
+
+    let videoFile = null;
+    let thumbnailFile = null;
+
+    videoInput.addEventListener('change', function() {
+        videoFile = videoInput.files[0];
+        if (videoFile) {
+            const videoURL = URL.createObjectURL(videoFile);
+            videoPreview.src = videoURL;
+        }
+    });
+
+    thumbnailInput.addEventListener('change', function() {
+        thumbnailFile = thumbnailInput.files[0];
+    });
+
+    async function fetchChannelInfo(userId) {
+        const docRef = doc(db, "channels", userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data(); // Return channel data
+        } else {
+            console.error("No such document!");
+            return { channelName: "Unknown", channelLogo: "" }; // Default values if document doesn't exist
+        }
+    }
+
+    async function generateThumbnail(videoFile) {
+        return new Promise((resolve, reject) => {
+            const videoElement = document.createElement('video');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            videoElement.src = URL.createObjectURL(videoFile);
+            videoElement.currentTime = 5; // Capture at the 5th second
+
+            videoElement.onloadedmetadata = () => {
+                videoElement.onseeked = () => {
+                    canvas.width = videoElement.videoWidth;
+                    canvas.height = videoElement.videoHeight;
+                    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        resolve(blob); // Thumbnail as a blob
+                    }, 'image/jpeg');
+                };
+            };
+
+            videoElement.onerror = (error) => {
+                reject(error);
+            };
+        });
+    }
+
+    async function uploadVideo(user) {
+        const videoTitle = videoTitleInput.value.trim();
+        const videoDescription = videoDescriptionInput.value.trim();
+        const videoTags = videoTagsInput.value.trim().split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        const videoType = videoTypeSelect.value;
+        const videoCategory = videoCategorySelect.value;
+
+        if (!videoFile || videoTitle === "") {
+            statusElement.textContent = 'Please provide both a video file and a title.';
+            return;
+        }
+
+        // Fetch the channel information
+        const channelInfo = await fetchChannelInfo(user.uid);
+        const channelName = channelInfo.channelName || "Unknown";
+        const channelLogo = channelInfo.channelLogo || ""; // Use an empty string if undefined
+
+        const videoName = `${Date.now()}_${videoFile.name}`;
+        const videoRef = ref(storage, `${videoType}/${videoName}`);
+        const uploadTask = uploadBytesResumable(videoRef, videoFile);
+
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                statusElement.textContent = `Upload is ${progress}% done.`;
+            }, 
+            (error) => {
+                statusElement.textContent = `Error uploading video: ${error.message}`;
+            }, 
+            async () => {
+                const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
+                let thumbnailUrl = '';
+                if (thumbnailFile) {
+                    const thumbnailName = `${Date.now()}_${thumbnailFile.name}`;
+                    const thumbnailRef = ref(storage, `thumbnails/${thumbnailName}`);
+                    const thumbnailSnapshot = await uploadBytesResumable(thumbnailRef, thumbnailFile);
+                    thumbnailUrl = await getDownloadURL(thumbnailSnapshot.ref);
+                } else {
+                    // Generate a thumbnail from the video if no custom thumbnail is provided
+                    const thumbnailBlob = await generateThumbnail(videoFile);
+                    const thumbnailName = `${Date.now()}_thumbnail.jpg`;
+                    const thumbnailRef = ref(storage, `thumbnails/${thumbnailName}`);
+                    const thumbnailSnapshot = await uploadBytesResumable(thumbnailRef, thumbnailBlob);
+                    thumbnailUrl = await getDownloadURL(thumbnailSnapshot.ref);
+                }
+
+                try {
+                    await addDoc(collection(db, videoType), {
+                        title: videoTitle,
+                        description: videoDescription,
+                        tags: videoTags,
+                        videoUrl: videoUrl,
+                        thumbnailUrl: thumbnailUrl,
+                        userId: user.uid,
+                        channelName: channelName,
+                        channelLogo: channelLogo,
+                        category: videoCategory,
+                        timestamp: new Date()
+                    });
+                    statusElement.textContent = 'Video uploaded successfully!';
+                } catch (error) {
+                    console.error("Error saving video data: ", error);
+                    statusElement.textContent = `Failed to save video data: ${error.message}`;
+                }
+            }
+        );
+    }
+
+    uploadBtn.addEventListener('click', function() {
+        console.log("Upload button clicked");
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                uploadVideo(user);
+            } else {
+                statusElement.textContent = 'Please log in to upload videos.';
+            }
+        });
+    });
+</script>
+
+</body>
+</html> 
