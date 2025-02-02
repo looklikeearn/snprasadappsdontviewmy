@@ -204,11 +204,9 @@
     let containerHeight = 0;
     let shortsHeight = 0;
     let scrollInterval;
-    let touchStartY = 0;
-    let touchEndY = 0;
-    let touchDiff = 0;
+    let pressTimer;
 
-    // Toggle button ON/OFF state for auto-scroll
+    // Toggle button ON/OFF state for favorite button
     favBtn.addEventListener('click', () => {
         if (isFavActive) {
             clearInterval(scrollInterval);
@@ -234,49 +232,45 @@
     });
 
     // Fetch shorts data from Firebase
-    async function fetchShorts() {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'shorts'));
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                const thumbnail = data.thumbnailUrl || 'default-thumbnail.jpg';
-                const title = data.title || 'Untitled';
+    // Fetch shorts data from Firebase
+async function fetchShorts() {
+    try {
+        const querySnapshot = await getDocs(collection(db, 'shorts'));
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            const thumbnail = data.thumbnailUrl || 'default-thumbnail.jpg';
+            const title = data.title || 'Untitled';
+            const shortId = doc.id;  // Get the unique ID for navigation
 
-                const shortDiv = document.createElement('div');
-                shortDiv.className = 'short-thumbnail';
-                shortDiv.dataset.shortId = doc.id; // Store short ID for navigation
+            const shortDiv = document.createElement('div');
+            shortDiv.className = 'short-thumbnail';
+            shortDiv.dataset.shortId = shortId;  // Store the short ID for reference
 
-                shortDiv.innerHTML = `
-                    <img src="${thumbnail}" alt="Short Thumbnail">
-                    <div class="details">${title}</div>
-                `;
+            shortDiv.innerHTML = `
+                <img src="${thumbnail}" alt="Short Thumbnail">
+                <div class="details">${title}</div>
+            `;
 
-                // ✅ Navigate to selected short when clicked
-                shortDiv.addEventListener('click', () => {
-                    navigateToShort(shortDiv);
-                });
-
-                shortsContainer.appendChild(shortDiv);
+            // Navigate to the selected short when the thumbnail is clicked
+            shortDiv.addEventListener('click', () => {
+                window.location.href = `shorts.html?shortId=${shortId}`;
             });
 
-            containerHeight = shortsContainer.offsetHeight;
-            shortsHeight = shortsContainer.scrollHeight;
+            shortsContainer.appendChild(shortDiv);
+        });
 
-            if (isFavActive) {
-                startAutoScroll();
-            }
-        } catch (error) {
-            console.error("Error fetching shorts: ", error);
+        containerHeight = shortsContainer.offsetHeight;
+        shortsHeight = shortsContainer.scrollHeight;
+
+        if (isFavActive) {
+            startAutoScroll();
         }
+    } catch (error) {
+        console.error("Error fetching shorts: ", error);
     }
+}
 
-    fetchShorts();
-
-    // ✅ Function to scroll to the selected short smoothly
-    function navigateToShort(selectedShort) {
-        const offsetTop = selectedShort.offsetTop;
-        shortsContainer.scrollTo({ top: offsetTop, behavior: 'smooth' });
-    }
+fetchShorts();
 
     // Automatic scroll logic
     function startAutoScroll() {
@@ -289,27 +283,7 @@
             shortsContainer.scrollTop = scrollPosition;
         }, 20);
     }
-
-    // === Touch Gesture for Swipe Navigation ===
-    shortsContainer.addEventListener('touchstart', (event) => {
-        touchStartY = event.touches[0].clientY;
-    });
-
-    shortsContainer.addEventListener('touchmove', (event) => {
-        touchEndY = event.touches[0].clientY;
-        touchDiff = touchStartY - touchEndY;
-
-        // Move shorts manually with touch
-        shortsContainer.scrollTop += touchDiff * (swipeSpeed * 0.5); // Adjust sensitivity based on speed
-        touchStartY = touchEndY; // Update touch start position
-    });
-
-    shortsContainer.addEventListener('touchend', () => {
-        touchDiff = 0; // Reset after touch ends
-    });
-
 </script>
-
 
 </body>
 </html>
