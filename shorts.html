@@ -3,399 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LookLike Shortsl</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Watch Short</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Reset */
-        * {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Background & Base Styling */
-        body, html {
-            height: 100%;
-            font-family: Arial, sans-serif;
             background-color: #000;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Container for video and overlay elements */
-        .short-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        /* Video Styling */
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Top Buttons */
-        .top-buttons {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-
-        .icon-button {
-            font-size: 28px;
             color: white;
-            background: none;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .icon-button:hover {
-            transform: scale(1.1);
-        }
-
-        /* Channel Info Section */
-        .channel-info {
-            position: absolute;
-            bottom: 180px;
-            left: 20px;
-            color: white;
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .channel-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            border: 2px solid white;
-        }
-
-        .channel-name {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .short-title {
-            font-size: 14px;
-            margin-top: 5px;
-            color: white;
-        }
-
-        /* Subscribe Button */
-        .subscribe-button {
-            margin-top: 8px;
-            padding: 6px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .subscribe-button:hover {
-            background: #ff4040;
-        }
-
-        /* Button Group for Like, Share, etc. */
-        .button-group {
-            position: absolute;
-            right: 20px;
-            bottom: 150px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        .button-group button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            margin: 10px 0;
-            transition: transform 0.2s ease, color 0.2s;
+        video {
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
         }
 
-        .button-group button:hover {
-            transform: scale(1.1);
-            color: #ff2a6d; /* Accent color for like button */
-        }
-
-        .like-count {
-            font-size: 16px;
-            color: white;
-            text-align: center;
-        }
-
-        /* Bottom Right Menu Button */
-        .menu-button {
+        .back-btn {
             position: absolute;
-            right: 20px;
-            bottom: 20px;
-            font-size: 28px;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
             color: white;
-            background: none;
             border: none;
+            padding: 10px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .menu-button:hover {
-            transform: scale(1.1);
-            color: #ff2a6d;
-        }
-
-        /* Fade-in Animation */
-        .fade-in {
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
 
-<div id="shortContainer" class="short-container"></div>
+<button class="back-btn" onclick="goBack()">
+    <i class="fas fa-arrow-left"></i>
+</button>
 
-<!-- Top Buttons for Back and Mute/Unmute -->
-<div class="top-buttons">
-    <button class="icon-button" id="backButton"><i class="fas fa-arrow-left"></i></button>
-    <button class="icon-button" id="micButton"><i class="fas fa-volume-up"></i></button>
-</div>
-
-<!-- Channel Information and Video Title -->
-<div class="channel-info fade-in">
-    <img id="channelLogo" class="channel-logo" src="" alt="Channel Logo">
-    <div>
-        <span id="channelName" class="channel-name"></span>
-        <div id="shortTitle" class="short-title"></div>
-        <button class="subscribe-button" id="subscribeButton">Subscribe</button>
-    </div>
-</div>
-
-<!-- Like, Like Count, and Share Buttons -->
-<div class="button-group fade-in">
-    <button class="like-button" id="likeButton"><i class="fas fa-heart"></i></button>
-    <div class="like-count" id="likeCount">0</div>
-    <button class="share-button" id="shareButton"><i class="fas fa-share"></i></button>
-</div>
-
-<!-- Bottom Right Menu Button -->
-<button class="menu-button fade-in" id="menuButton"><i class="fas fa-ellipsis-v"></i></button>
+<video id="shortVideo" controls autoplay></video>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, increment, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
+    // Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
+        apiKey: "AIzaSyDebZ98GjmX8gxYC4jI_gmiChm7TzFqsMg",
+        authDomain: "test-d6f13.firebaseapp.com",
+        projectId: "test-d6f13",
+        storageBucket: "test-d6f13.appspot.com",
+        messagingSenderId: "1043978393185",
+        appId: "1:1043978393185:web:a40e50c013d7869b8cfc20",
+        measurementId: "G-VLTFR2GXGS"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
-    const shortContainer = document.getElementById('shortContainer');
-    const backButton = document.getElementById('backButton');
-    const menuButton = document.getElementById('menuButton');
-    const micButton = document.getElementById('micButton');
-    const likeButton = document.getElementById('likeButton');
-    const likeCountDiv = document.getElementById('likeCount');
-    const shareButton = document.getElementById('shareButton');
-    const channelLogo = document.getElementById('channelLogo');
-    const channelName = document.getElementById('channelName');
-    const shortTitle = document.getElementById('shortTitle');
-    const subscribeButton = document.getElementById('subscribeButton');
-    let currentIndex = 0;
-    let shorts = [];
-    let isLiked = false;
-    let isSubscribed = false;
-    let videoElement;
-
-    backButton.onclick = () => window.history.back();
-
-    async function loadShorts() {
-        const shortsCollection = collection(db, 'shorts');
-        const shortsQuery = query(shortsCollection, orderBy('timestamp', 'desc'));
-        const querySnapshot = await getDocs(shortsQuery);
-
-        querySnapshot.forEach((doc) => {
-            shorts.push({ id: doc.id, ...doc.data() });
-        });
-
-        if (shorts.length > 0) displayShort(currentIndex);
-        else alert('No shorts available');
+    // Function to get the shortId from URL
+    function getShortIdFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("shortId");
     }
 
-    function displayShort(index) {
-        shortContainer.innerHTML = '';
-        const videoData = shorts[index];
-
-        videoElement = document.createElement('video');
-        videoElement.src = videoData.videoUrl;
-        videoElement.controls = false;
-        videoElement.autoplay = true;
-        videoElement.loop = true;
-        videoElement.muted = false;
-        videoElement.classList.add('fade-in');
-
-        videoElement.addEventListener('click', handleSingleTap);
-        videoElement.addEventListener('dblclick', () => likeShort(videoData.id));
-
-        shortContainer.appendChild(videoElement);
-
-        channelLogo.src = videoData.channelLogo;
-        channelName.textContent = videoData.channelName;
-        shortTitle.textContent = videoData.title;
-
-        likeCountDiv.textContent = videoData.likes || 0;
-        isLiked = false;
-                // Reset the like button color and subscribe button text
-                likeButton.style.color = "white";
-        subscribeButton.textContent = isSubscribed ? "Subscribed" : "Subscribe";
-    }
-
-    // Single-tap handler to toggle play/pause
-    function handleSingleTap() {
-        videoElement.paused ? videoElement.play() : videoElement.pause();
-    }
-
-    // Like functionality
-    async function likeShort(videoId) {
-        if (isLiked) return;
-
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
-            alert("Please log in to like the video.");
+    // Fetch and display the video
+    async function loadShort() {
+        const shortId = getShortIdFromURL();
+        if (!shortId) {
+            alert("No short ID found!");
             return;
         }
 
-        const likeDocRef = doc(db, `shorts/${videoId}/likes`, userId);
-        const likeDoc = await getDoc(likeDocRef);
+        const shortDocRef = doc(db, "shorts", shortId);
+        const shortDoc = await getDoc(shortDocRef);
 
-        if (!likeDoc.exists()) {
-            await setDoc(likeDocRef, { liked: true });
-            await updateDoc(doc(db, "shorts", videoId), { likes: increment(1) });
+        if (shortDoc.exists()) {
+            const shortData = shortDoc.data();
+            const videoUrl = shortData.videoUrl;
 
-            isLiked = true;
-            likeButton.style.color = "red";
-            likeCountDiv.textContent = parseInt(likeCountDiv.textContent) + 1;
-        } else {
-            alert("You've already liked this video.");
-        }
-    }
-
-    // Swipe detection
-    let startX = 0;
-    let startY = 0;
-
-    shortContainer.addEventListener("touchstart", (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-    });
-
-    shortContainer.addEventListener("touchend", (e) => {
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        const diffX = endX - startX;
-        const diffY = endY - startY;
-
-        // Detect vertical swipe
-        if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 50) {
-            if (diffY > 0) {
-                // Swipe down - previous video
-                if (currentIndex > 0) {
-                    currentIndex--;
-                    displayShort(currentIndex);
-                }
+            if (videoUrl) {
+                document.getElementById("shortVideo").src = videoUrl;
             } else {
-                // Swipe up - next video
-                if (currentIndex < shorts.length - 1) {
-                    currentIndex++;
-                    displayShort(currentIndex);
-                }
+                alert("Video URL not found!");
             }
-        }
-    });
-
-    // Subscribe functionality
-    subscribeButton.onclick = async () => {
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
-            alert("Please log in to subscribe.");
-            return;
-        }
-
-        const channelData = shorts[currentIndex];
-        const subDocRef = doc(db, `channels/${channelData.channelId}/subscribers`, userId);
-        const subDoc = await getDoc(subDocRef);
-
-        if (!subDoc.exists()) {
-            await setDoc(subDocRef, { subscribed: true });
-            isSubscribed = true;
-            subscribeButton.textContent = "Subscribed";
-            subscribeButton.style.backgroundColor = "grey";
         } else {
-            alert("You're already subscribed to this channel.");
+            alert("Short not found!");
         }
-    };
+    }
 
-    // Mic button to mute/unmute
-    micButton.onclick = () => {
-        videoElement.muted = !videoElement.muted;
-        micButton.innerHTML = videoElement.muted 
-            ? '<i class="fas fa-volume-mute"></i>' 
-            : '<i class="fas fa-volume-up"></i>';
-    };
+    loadShort();
 
-    // Share functionality
-    shareButton.onclick = () => {
-        const videoData = shorts[currentIndex];
-        if (navigator.share) {
-            navigator.share({ title: "Check out this short!", url: videoData.videoUrl });
-        } else {
-            navigator.clipboard.writeText(videoData.videoUrl);
-            alert("Video link copied to clipboard!");
-        }
-    };
-
-    // Load shorts when the user is authenticated
-    onAuthStateChanged(auth, user => {
-        if (user) loadShorts();
-        else alert("Please log in to view shorts.");
-    });
+    // Function to go back
+    function goBack() {
+        window.history.back();
+    }
 </script>
+
 </body>
 </html>
-
