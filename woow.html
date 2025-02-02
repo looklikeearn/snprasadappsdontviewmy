@@ -208,7 +208,7 @@
     let touchEndY = 0;
     let touchDiff = 0;
 
-    // Toggle button ON/OFF state for favorite button
+    // Toggle button ON/OFF state for auto-scroll
     favBtn.addEventListener('click', () => {
         if (isFavActive) {
             clearInterval(scrollInterval);
@@ -244,14 +244,16 @@
 
                 const shortDiv = document.createElement('div');
                 shortDiv.className = 'short-thumbnail';
+                shortDiv.dataset.shortId = doc.id; // Store short ID for navigation
 
                 shortDiv.innerHTML = `
                     <img src="${thumbnail}" alt="Short Thumbnail">
                     <div class="details">${title}</div>
                 `;
 
+                // ✅ Navigate to selected short when clicked
                 shortDiv.addEventListener('click', () => {
-                    window.location.href = `shorts.html?shortId=${doc.id}`;
+                    navigateToShort(shortDiv);
                 });
 
                 shortsContainer.appendChild(shortDiv);
@@ -269,6 +271,12 @@
     }
 
     fetchShorts();
+
+    // ✅ Function to scroll to the selected short smoothly
+    function navigateToShort(selectedShort) {
+        const offsetTop = selectedShort.offsetTop;
+        shortsContainer.scrollTo({ top: offsetTop, behavior: 'smooth' });
+    }
 
     // Automatic scroll logic
     function startAutoScroll() {
