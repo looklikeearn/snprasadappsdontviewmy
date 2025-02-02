@@ -181,12 +181,12 @@
 
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-        authDomain: "look-like-e8819.firebaseapp.com",
-        projectId: "look-like-e8819",
-        storageBucket: "look-like-e8819.appspot.com",
-        messagingSenderId: "976652364108",
-        appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-        measurementId: "G-RPHVKH612W"
+  authDomain: "look-like-e8819.firebaseapp.com",
+  projectId: "look-like-e8819",
+  storageBucket: "look-like-e8819.appspot.com",
+  messagingSenderId: "976652364108",
+  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+  measurementId: "G-RPHVKH612W"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -204,7 +204,9 @@
     let containerHeight = 0;
     let shortsHeight = 0;
     let scrollInterval;
-    let pressTimer;
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let touchDiff = 0;
 
     // Toggle button ON/OFF state for favorite button
     favBtn.addEventListener('click', () => {
@@ -279,7 +281,27 @@
             shortsContainer.scrollTop = scrollPosition;
         }, 20);
     }
+
+    // === Touch Gesture for Swipe Navigation ===
+    shortsContainer.addEventListener('touchstart', (event) => {
+        touchStartY = event.touches[0].clientY;
+    });
+
+    shortsContainer.addEventListener('touchmove', (event) => {
+        touchEndY = event.touches[0].clientY;
+        touchDiff = touchStartY - touchEndY;
+
+        // Move shorts manually with touch
+        shortsContainer.scrollTop += touchDiff * (swipeSpeed * 0.5); // Adjust sensitivity based on speed
+        touchStartY = touchEndY; // Update touch start position
+    });
+
+    shortsContainer.addEventListener('touchend', () => {
+        touchDiff = 0; // Reset after touch ends
+    });
+
 </script>
+
 
 </body>
 </html>
