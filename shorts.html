@@ -1,109 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Short</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        video {
-            width: 100%;
-            height: 100vh;
-            object-fit: cover;
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watch Short</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: white;
+      overflow: hidden;
+      position: relative;
+    }
+    video {
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 20;
+    }
+    .uploader-info {
+      position: absolute;
+      top: 20px;
+      left: 80px;
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+    .uploader-info > div {
+      margin-bottom: 4px;
+    }
+    .uploader-logo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 20;
+    }
+    .uploader-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .uploader-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+    }
+    .subscriber-count {
+      font-size: 14px;
+      color: #bbb;
+    }
+    .short-title {
+      position: absolute;
+      bottom: 60px;
+      left: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      max-width: 80%;
+      word-wrap: break-word;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 12px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      z-index: 20;
+    }
+  </style>
 </head>
 <body>
-
-<button class="back-btn" onclick="goBack()">
+  <button class="back-btn" onclick="goBack()">
     <i class="fas fa-arrow-left"></i>
-</button>
+  </button>
 
-<video id="shortVideo" controls autoplay></video>
+  <div class="uploader-logo">
+    <img id="channelLogo" src="https://via.placeholder.com/40" alt="Channel Logo" />
+  </div>
 
-<script type="module">
+  <div class="uploader-info">
+    <div id="uploaderName" class="uploader-name">Loading...</div>
+    <div id="subscriberCount" class="subscriber-count">Loading...</div>
+  </div>
+
+  <video id="shortVideo" autoplay loop muted playsinline></video>
+
+  <div class="short-title" id="shortTitle">Loading...</div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
+      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+      authDomain: "look-like-e8819.firebaseapp.com",
+      projectId: "look-like-e8819",
+      storageBucket: "look-like-e8819.appspot.com",
+      messagingSenderId: "976652364108",
+      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+      measurementId: "G-RPHVKH612W"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Function to get the shortId from URL
+    const videoElement = document.getElementById("shortVideo");
+    const titleElement = document.getElementById("shortTitle");
+    const channelLogo = document.getElementById("channelLogo");
+    const uploaderNameElement = document.getElementById("uploaderName");
+    const subscriberCountElement = document.getElementById("subscriberCount");
+
+    let shortsList = [];
+    let currentIndex = 0;
+
     function getShortIdFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get("shortId");
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("shortId");
     }
 
-    // Fetch and display the video
-    async function loadShort() {
+    async function loadShorts() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "shorts"));
+        querySnapshot.forEach((docSnap) => {
+          shortsList.push({
+            id: docSnap.id,
+            videoUrl: docSnap.data().videoUrl,
+            title: docSnap.data().title || "Untitled",
+            channelLogo: docSnap.data().channelLogo || "https://via.placeholder.com/40",
+            channelName: docSnap.data().channelName || "Anonymous"
+          });
+        });
+
         const shortId = getShortIdFromURL();
-        if (!shortId) {
-            alert("No short ID found!");
-            return;
+        if (shortId) {
+          currentIndex = shortsList.findIndex(short => short.id === shortId);
         }
-
-        const shortDocRef = doc(db, "shorts", shortId);
-        const shortDoc = await getDoc(shortDocRef);
-
-        if (shortDoc.exists()) {
-            const shortData = shortDoc.data();
-            const videoUrl = shortData.videoUrl;
-
-            if (videoUrl) {
-                document.getElementById("shortVideo").src = videoUrl;
-            } else {
-                alert("Video URL not found!");
-            }
+        if (currentIndex < 0) currentIndex = 0;
+        if (shortsList.length > 0) {
+          loadShort(currentIndex);
         } else {
-            alert("Short not found!");
+          console.error("No shorts found in the database.");
         }
+      } catch (error) {
+        console.error("Error loading shorts:", error.message);
+      }
     }
 
-    loadShort();
+    async function loadShort(index) {
+      if (index >= 0 && index < shortsList.length) {
+        const short = shortsList[index];
+        console.log("Loaded short:", short);
 
-    // Function to go back
+        // Load video
+        if (short.videoUrl) {
+          videoElement.src = short.videoUrl;
+          console.log("Video URL loaded:", short.videoUrl);
+        } else {
+          console.error("Video URL is missing for this short.");
+        }
+
+        // Set short title
+        titleElement.textContent = short.title;
+
+        // Set uploader info
+        channelLogo.src = short.channelLogo;
+        uploaderNameElement.textContent = short.channelName;
+
+        // Increment view count in Firestore
+        incrementViewCount(short.id);
+
+        // Update current index for navigation
+        currentIndex = index;
+
+        window.history.pushState({}, '', `shorts.html?shortId=${short.id}`);
+      }
+    }
+
+    async function incrementViewCount(shortId) {
+      const shortDocRef = doc(db, "shorts", shortId);
+
+      try {
+        await updateDoc(shortDocRef, {
+          views: increment(1)
+        });
+        console.log("View count updated for short:", shortId);
+      } catch (error) {
+        console.error("Error updating view count:", error.message);
+      }
+    }
+
+    loadShorts();
+
+    videoElement.addEventListener("click", () => {
+      if (videoElement.paused) {
+        videoElement.play();
+      } else {
+        videoElement.pause();
+      }
+    });
+
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    document.addEventListener("touchstart", (event) => {
+      touchStartY = event.touches[0].clientY;
+    });
+
+    document.addEventListener("touchend", (event) => {
+      touchEndY = event.changedTouches[0].clientY;
+      handleSwipe();
+    });
+
+    function handleSwipe() {
+      let diff = touchStartY - touchEndY;
+      if (diff > 50) {
+        loadShort(currentIndex + 1);
+      } else if (diff < -50) {
+        loadShort(currentIndex - 1);
+      }
+    }
+
     function goBack() {
-        window.history.back();
+      window.location.href = "woow.html";
     }
-</script>
-
+  </script>
 </body>
 </html>
