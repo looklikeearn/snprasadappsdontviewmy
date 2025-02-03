@@ -1,276 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Watch Short</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: white;
-      overflow: hidden;
-      position: relative;
-    }
-    video {
-      width: 100%;
-      height: 100vh;
-      object-fit: cover;
-    }
-    .back-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      z-index: 20;
-    }
-    .uploader-info {
-  position: absolute;
-  top: 20px;
-  left: 80px;
-  display: flex;
-  flex-direction: column;
-  z-index: 20;
-  background: rgba(0, 0, 0, 0.5); /* Transparent black */
-  padding: 8px;
-  border-radius: 10px;
-  backdrop-filter: blur(5px);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LookLike - Video</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+        }
+
+        .channel-logo, .channel-name {
+    cursor: pointer; /* Indicates clickable */
 }
 
-    .uploader-info > div {
-      margin-bottom: 4px;
-    }
-    .uploader-logo {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      overflow: hidden;
-      z-index: 20;
-    }
-    .uploader-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .uploader-name {
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-    }
-    .subscriber-count {
-      font-size: 14px;
-      color: #bbb;
-    }
-    .short-title {
-      position: absolute;
-      bottom: 60px;
-      left: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      max-width: 80%;
-      word-wrap: break-word;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 8px 12px;
-      border-radius: 10px;
-      backdrop-filter: blur(5px);
-      z-index: 20;
-    }
-    /* View count icon and display */
-    .view-count {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      align-items: center;
-      z-index: 20;
-      font-size: 16px;
-      color: white;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 8px 12px;
-      border-radius: 20px;
-    }
-    .view-count i {
-      margin-right: 5px;
-    }
-  </style>
+.channel-name {
+    font-size: 16px;
+    color: #000;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.channel-name:hover {
+    text-decoration: underline; /* Optional hover effect */
+}
+
+
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            background-color: #000;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        .video-info {
+            padding: 15px;
+            background-color: white;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #666;
+            overflow: hidden;
+            max-height: 40px; /* Show 2 lines */
+            line-height: 20px; /* Approximate height of one line */
+            position: relative;
+        }
+
+        .more-button {
+            color: #00f;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .channel-logo {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .channel-details {
+            flex-grow: 1;
+        }
+
+        .channel-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .subscriber-count {
+            color: #888;
+        }
+
+        .subscribe-button {
+            background-color: black;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+
+        .action-button {
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .video-details {
+            margin-top: 10px;
+        }
+
+        .comments-section {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .related-videos {
+            margin-top: 30px;
+        }
+
+        .related-video {
+            display: inline-block;
+            width: 160px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .related-videos {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .related-video {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 320px;
+            cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            aspect-ratio: 24 / 13;
+            overflow: hidden;
+        }
+
+        .related-video-title {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+        }
+
+
+        .related-video-title {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 5px;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-  <button class="back-btn" onclick="goBack()">
-    <i class="fas fa-arrow-left"></i>
-  </button>
 
-  <div class="uploader-logo">
-    <img id="channelLogo" src="https://via.placeholder.com/40" alt="Channel Logo" />
-  </div>
+<div class="video-container">
+    <video id="video-player" controls>
+        Your browser does not support the video tag.
+    </video>
 
-  <div class="uploader-info">
-    <div id="uploaderName" class="uploader-name">Loading...</div>
-    <div id="subscriberCount" class="subscriber-count">Loading...</div>
-  </div>
+    <div class="video-info">
+        <div id="video-title" class="title">Your Video Title</div>
+        
+        <div id="video-description-container">
+            <div id="video-description" class="description">Your video description goes here...</div>
+            <span id="more-button" class="more-button">More</span>
+        </div>
 
-  <video id="shortVideo" autoplay loop muted playsinline></video>
+        <div class="channel-info">
+            <img src="your-channel-logo-url.jpg" alt="Channel Logo" class="channel-logo" id="channel-logo">
+            <div class="channel-details">
+                <div class="channel-name" id="channel-name">Look Like</div>
+                <div class="subscriber-count" id="subscriber-count">subscribe this channel</div>
+            </div>
+            <button class="subscribe-button" id="subscribe-button">Subscribe</button>
+        </div>
 
-  <div class="short-title" id="shortTitle">Loading...</div>
+        <div class="actions">
+            <div id="likeBtn" class="action-button">
+                <i class="fas fa-thumbs-up"></i> <span id="likeCount"></span>
+            </div>
+            <div id="unlikeBtn" class="action-button">
+                <i class="fas fa-thumbs-down"></i> <span id="unlikeCount"></span>
+            </div>
+            <div id="shareBtn" class="action-button">
+                <i class="fas fa-share"></i> Share
+            </div>
+        </div>
 
-  <!-- View count icon and display -->
-  <div id="viewCount" class="view-count">
-    <i class="fas fa-eye"></i>
-    <span id="viewCountNumber">0</span>
-  </div>
+        <div class="video-details">
+            <div id="views">Views: 0</div>
+            <div id="upload-time">Uploaded: N/A</div>
+            <div id="likes">Likes: 0</div>
+        </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+        <div class="comments-section">
+            <input type="text" class="comment-input" placeholder="Add a comment...">
+        </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-      authDomain: "look-like-e8819.firebaseapp.com",
-      projectId: "look-like-e8819",
-      storageBucket: "look-like-e8819.appspot.com",
-      messagingSenderId: "976652364108",
-      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-      measurementId: "G-RPHVKH612W"
-    };
+        <div class="related-videos" id="related-videos">
+            <!-- Related videos will be populated here -->
+        </div>
+    </div>
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<script type="module">
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
-    const videoElement = document.getElementById("shortVideo");
-    const titleElement = document.getElementById("shortTitle");
-    const channelLogo = document.getElementById("channelLogo");
-    const uploaderNameElement = document.getElementById("uploaderName");
-    const subscriberCountElement = document.getElementById("subscriberCount");
-    const viewCountElement = document.getElementById("viewCountNumber");
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+  authDomain: "look-like-e8819.firebaseapp.com",
+  projectId: "look-like-e8819",
+  storageBucket: "look-like-e8819.appspot.com",
+  messagingSenderId: "976652364108",
+  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+  measurementId: "G-RPHVKH612W"
+};
 
-    let shortsList = [];
-    let currentIndex = 0;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    function getShortIdFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get("shortId");
+// Getting elements for interaction
+const shortPlayer = document.getElementById('short-player');
+const shortTitle = document.getElementById('short-title');
+const likeBtn = document.getElementById('likeBtn');
+const likeCount = document.getElementById('likeCount');
+const shortDescription = document.getElementById('short-description');
+const moreButton = document.getElementById('more-button');
+const shareBtn = document.getElementById('shareBtn');
+let isDescriptionExpanded = false;
+
+const urlParams = new URLSearchParams(window.location.search);
+const shortId = urlParams.get('shortId');
+let userId;
+
+// Event listener for "More" button to toggle description
+moreButton.addEventListener('click', () => {
+    if (isDescriptionExpanded) {
+        shortDescription.style.maxHeight = '40px';
+        moreButton.textContent = 'More';
+    } else {
+        shortDescription.style.maxHeight = 'none';
+        moreButton.textContent = 'Less';
     }
+    isDescriptionExpanded = !isDescriptionExpanded;
+});
 
-    async function loadShorts() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "shorts"));
-        querySnapshot.forEach((docSnap) => {
-          shortsList.push({
-            id: docSnap.id,
-            videoUrl: docSnap.data().videoUrl,
-            title: docSnap.data().title || "Untitled",
-            channelLogo: docSnap.data().channelLogo || "https://via.placeholder.com/40",
-            channelName: docSnap.data().channelName || "Anonymous",
-            views: docSnap.data().views || 0 // Fetch current views
-          });
-        });
+// Function to load the short's details
+async function loadShort() {
+    try {
+        const shortDocRef = doc(db, "shorts", shortId);
+        const shortDoc = await getDoc(shortDocRef);
+        
+        if (shortDoc.exists()) {
+            const shortData = shortDoc.data();
+            userId = shortData.userId;
+            shortPlayer.src = shortData.shortUrl;
+            shortTitle.textContent = shortData.title || "Untitled Short";
+            shortDescription.textContent = shortData.description || "No description available.";
+            
+            // Update views count
+            await updateDoc(shortDocRef, { views: increment(1) });
+            const updatedShortDoc = await getDoc(shortDocRef);
+            const updatedData = updatedShortDoc.data();
+            document.getElementById('views').textContent = `Views: ${updatedData.views || 0}`;
 
-        const shortId = getShortIdFromURL();
-        if (shortId) {
-          currentIndex = shortsList.findIndex(short => short.id === shortId);
-        }
-        if (currentIndex < 0) currentIndex = 0;
-        if (shortsList.length > 0) {
-          loadShort(currentIndex);
+            document.getElementById('likes').textContent = `Likes: ${updatedData.likes || 0}`;
+
+            shortPlayer.play();
         } else {
-          console.error("No shorts found in the database.");
+            console.error("No such short found!");
         }
-      } catch (error) {
-        console.error("Error loading shorts:", error.message);
-      }
+    } catch (error) {
+        console.error(`Error fetching short: ${error.message}`);
     }
+}
 
-    async function loadShort(index) {
-      if (index >= 0 && index < shortsList.length) {
-        const short = shortsList[index];
-        console.log("Loaded short:", short);
+// Handling like/unlike functionality
+likeBtn.addEventListener('click', async () => {
+    try {
+        const shortDoc = await getDoc(doc(db, "shorts", shortId)); // Get the current short document
+        if (shortDoc.exists()) {
+            const data = shortDoc.data();
+            const userLikes = data.userLikes || {}; // Get the list of users who liked, default to empty object
 
-        // Load video
-        if (short.videoUrl) {
-          videoElement.src = short.videoUrl;
-          console.log("Video URL loaded:", short.videoUrl);
-        } else {
-          console.error("Video URL is missing for this short.");
+            // Check if the user has already liked the short
+            if (userLikes[userId]) {
+                // User has already liked, so remove the like
+                await updateDoc(doc(db, "shorts", shortId), {
+                    [`userLikes.${userId}`]: deleteField(), // Remove the user's like
+                    likes: increment(-1), // Decrease like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'black'; // Reset like button color
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) - 1}`;
+            } else {
+                // User has not liked, so add the like
+                await updateDoc(doc(db, "shorts", shortId), {
+                    [`userLikes.${userId}`]: true, // Mark the user as having liked the short
+                    likes: increment(1), // Increase like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'blue'; // Highlight like button
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) + 1}`;
+            }
         }
-
-        // Set short title
-        titleElement.textContent = short.title;
-
-        // Set uploader info
-        channelLogo.src = short.channelLogo;
-        uploaderNameElement.textContent = short.channelName;
-
-        // Set current view count
-        viewCountElement.textContent = short.views;
-
-        // Increment view count in Firestore
-        incrementViewCount(short.id);
-
-        // Update current index for navigation
-        currentIndex = index;
-
-        window.history.pushState({}, '', `shorts.html?shortId=${short.id}`);
-      }
+    } catch (error) {
+        console.error("Error toggling like:", error.message);
     }
+});
 
-    async function incrementViewCount(shortId) {
-      const shortDocRef = doc(db, "shorts", shortId);
-
-      try {
-        await updateDoc(shortDocRef, {
-          views: increment(1)
+// Handling user login and subscription
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userId = user.uid; // Get user ID
+        loadShort(); // Load short details for the logged-in user
+    } else {
+        // Prompt for login if not authenticated
+        alert("Please log in to interact with this short.");
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider).catch((error) => {
+            console.error("Login failed:", error.message);
         });
-        console.log("View count updated for short:", shortId);
-      } catch (error) {
-        console.error("Error updating view count:", error.message);
-      }
     }
+});
 
-    loadShorts();
+// Share button functionality
+shareBtn.addEventListener('click', async () => {
+    const shortUrl = window.location.href;
+    const shortTitleText = shortTitle.textContent;
 
-    videoElement.addEventListener("click", () => {
-      if (videoElement.paused) {
-        videoElement.play();
-      } else {
-        videoElement.pause();
-      }
-    });
-
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    document.addEventListener("touchstart", (event) => {
-      touchStartY = event.touches[0].clientY;
-    });
-
-    document.addEventListener("touchend", (event) => {
-      touchEndY = event.changedTouches[0].clientY;
-      handleSwipe();
-    });
-
-    function handleSwipe() {
-      let diff = touchStartY - touchEndY;
-      if (diff > 50) {
-        loadShort(currentIndex + 1);
-      } else if (diff < -50) {
-        loadShort(currentIndex - 1);
-      }
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: shortTitleText,
+                url: shortUrl,
+            });
+            console.log('Short shared successfully!');
+        } catch (error) {
+            console.error('Error sharing short:', error.message);
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(shortUrl);
+            alert('Short URL copied to clipboard!');
+        } catch (error) {
+            console.error('Failed to copy:', error.message);
+        }
     }
+});
 
-    function goBack() {
-      window.location.href = "woow.html";
-    }
-  </script>
+</script>
+
+
 </body>
 </html>
