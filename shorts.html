@@ -34,17 +34,17 @@
       z-index: 20;
     }
     .uploader-info {
-      position: absolute;
-      top: 20px;
-      left: 80px;
-      display: flex;
-      flex-direction: column;
-      z-index: 20;
-      background: rgba(0, 0, 0, 0.5); 
-      padding: 8px;
-      border-radius: 10px;
-      backdrop-filter: blur(5px);
-    }
+  position: absolute;
+  top: 20px;
+  left: 80px;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.5); /* Transparent black */
+  padding: 8px;
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+}
 
     .uploader-info > div {
       margin-bottom: 4px;
@@ -87,6 +87,7 @@
       backdrop-filter: blur(5px);
       z-index: 20;
     }
+    /* View count icon and display */
     .view-count {
       position: absolute;
       top: 20px;
@@ -102,23 +103,6 @@
     }
     .view-count i {
       margin-right: 5px;
-    }
-    /* Subscribe button style */
-    .subscribe-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      background-color: #ff0000;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 20;
-    }
-    .subscribed {
-      background-color: gold;
     }
   </style>
 </head>
@@ -140,18 +124,16 @@
 
   <div class="short-title" id="shortTitle">Loading...</div>
 
+  <!-- View count icon and display -->
   <div id="viewCount" class="view-count">
     <i class="fas fa-eye"></i>
     <span id="viewCountNumber">0</span>
   </div>
 
-  <button id="subscribeBtn" class="subscribe-btn" onclick="handleSubscription()">Subscribe</button>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-  
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
       authDomain: "look-like-e8819.firebaseapp.com",
@@ -161,27 +143,25 @@
       appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
       measurementId: "G-RPHVKH612W"
     };
-  
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
-  
+
     const videoElement = document.getElementById("shortVideo");
     const titleElement = document.getElementById("shortTitle");
     const channelLogo = document.getElementById("channelLogo");
     const uploaderNameElement = document.getElementById("uploaderName");
     const subscriberCountElement = document.getElementById("subscriberCount");
     const viewCountElement = document.getElementById("viewCountNumber");
-    const subscribeButton = document.getElementById("subscribeButton");
-  
+
     let shortsList = [];
     let currentIndex = 0;
-  
-    async function getShortIdFromURL() {
+
+    function getShortIdFromURL() {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get("shortId");
     }
-  
+
     async function loadShorts() {
       try {
         const querySnapshot = await getDocs(collection(db, "shorts"));
@@ -192,12 +172,11 @@
             title: docSnap.data().title || "Untitled",
             channelLogo: docSnap.data().channelLogo || "https://via.placeholder.com/40",
             channelName: docSnap.data().channelName || "Anonymous",
-            views: docSnap.data().views || 0, // Fetch current views
-            channelId: docSnap.data().channelId, // Assuming channelId is stored
+            views: docSnap.data().views || 0 // Fetch current views
           });
         });
-  
-        const shortId = await getShortIdFromURL();
+
+        const shortId = getShortIdFromURL();
         if (shortId) {
           currentIndex = shortsList.findIndex(short => short.id === shortId);
         }
@@ -211,12 +190,12 @@
         console.error("Error loading shorts:", error.message);
       }
     }
-  
+
     async function loadShort(index) {
       if (index >= 0 && index < shortsList.length) {
         const short = shortsList[index];
         console.log("Loaded short:", short);
-  
+
         // Load video
         if (short.videoUrl) {
           videoElement.src = short.videoUrl;
@@ -224,30 +203,30 @@
         } else {
           console.error("Video URL is missing for this short.");
         }
-  
+
         // Set short title
         titleElement.textContent = short.title;
-  
+
         // Set uploader info
         channelLogo.src = short.channelLogo;
         uploaderNameElement.textContent = short.channelName;
-  
+
         // Set current view count
         viewCountElement.textContent = short.views;
-  
+
         // Increment view count in Firestore
         incrementViewCount(short.id);
-  
+
         // Update current index for navigation
         currentIndex = index;
-  
-        // Update subscription status
-        checkSubscription(short.channelId);
+
+        window.history.pushState({}, '', `shorts.html?shortId=${short.id}`);
       }
     }
-  
+
     async function incrementViewCount(shortId) {
       const shortDocRef = doc(db, "shorts", shortId);
+
       try {
         await updateDoc(shortDocRef, {
           views: increment(1)
@@ -257,63 +236,41 @@
         console.error("Error updating view count:", error.message);
       }
     }
-  
-    async function checkSubscription(channelId) {
-      const user = auth.currentUser;
-      if (user) {
-        const subscriptionsRef = collection(db, "subscriptions");
-        const querySnapshot = await getDocs(subscriptionsRef);
-        let isSubscribed = false;
-  
-        querySnapshot.forEach((docSnap) => {
-          const subscription = docSnap.data();
-          if (subscription.userId === user.uid && subscription.channelId === channelId) {
-            isSubscribed = true;
-          }
-        });
-  
-        // Update the subscribe button
-        if (isSubscribed) {
-          subscribeButton.textContent = "Subscribed";
-          subscribeButton.style.backgroundColor = "gold";
-          subscribeButton.disabled = true; // Disable if already subscribed
-        } else {
-          subscribeButton.textContent = "Subscribe";
-          subscribeButton.style.backgroundColor = "#007bff";
-          subscribeButton.disabled = false;
-        }
-      }
-    }
-  
-    async function handleSubscription(channelId) {
-      const user = auth.currentUser;
-      if (user) {
-        const subscriptionRef = doc(db, "subscriptions", `${user.uid}_${channelId}`);
-        await setDoc(subscriptionRef, {
-          userId: user.uid,
-          channelId: channelId,
-          timestamp: new Date()
-        });
-  
-        // Update subscription status in the UI
-        subscribeButton.textContent = "Subscribed";
-        subscribeButton.style.backgroundColor = "gold";
-        subscribeButton.disabled = true; // Disable if already subscribed
-  
-        console.log("User subscribed to channel:", channelId);
-      } else {
-        console.error("No user logged in to subscribe.");
-      }
-    }
-  
-    subscribeButton.addEventListener("click", () => {
-      const short = shortsList[currentIndex];
-      handleSubscription(short.channelId);
-    });
-  
+
     loadShorts();
-  
+
+    videoElement.addEventListener("click", () => {
+      if (videoElement.paused) {
+        videoElement.play();
+      } else {
+        videoElement.pause();
+      }
+    });
+
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    document.addEventListener("touchstart", (event) => {
+      touchStartY = event.touches[0].clientY;
+    });
+
+    document.addEventListener("touchend", (event) => {
+      touchEndY = event.changedTouches[0].clientY;
+      handleSwipe();
+    });
+
+    function handleSwipe() {
+      let diff = touchStartY - touchEndY;
+      if (diff > 50) {
+        loadShort(currentIndex + 1);
+      } else if (diff < -50) {
+        loadShort(currentIndex - 1);
+      }
+    }
+
+    function goBack() {
+      window.location.href = "woow.html";
+    }
   </script>
-  
 </body>
 </html>
