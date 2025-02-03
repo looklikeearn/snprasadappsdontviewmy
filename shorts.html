@@ -40,6 +40,10 @@
       display: flex;
       flex-direction: column;
       z-index: 20;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
     }
     .uploader-info > div {
       margin-bottom: 4px;
@@ -82,6 +86,37 @@
       backdrop-filter: blur(5px);
       z-index: 20;
     }
+    .view-count {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      z-index: 20;
+      font-size: 16px;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 12px;
+      border-radius: 20px;
+    }
+    .view-count i {
+      margin-right: 5px;
+    }
+    .subscribe-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      z-index: 20;
+    }
+    .subscribed-btn {
+      background-color: yellow;
+    }
   </style>
 </head>
 <body>
@@ -102,9 +137,17 @@
 
   <div class="short-title" id="shortTitle">Loading...</div>
 
+  <div id="viewCount" class="view-count">
+    <i class="fas fa-eye"></i>
+    <span id="viewCountNumber">0</span>
+  </div>
+
+  <button id="subscribeBtn" class="subscribe-btn">Subscribe</button>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
@@ -118,20 +161,20 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const videoElement = document.getElementById("shortVideo");
     const titleElement = document.getElementById("shortTitle");
     const channelLogo = document.getElementById("channelLogo");
     const uploaderNameElement = document.getElementById("uploaderName");
     const subscriberCountElement = document.getElementById("subscriberCount");
+    const viewCountElement = document.getElementById("viewCountNumber");
+    const subscribeBtn = document.getElementById("subscribeBtn");
 
     let shortsList = [];
     let currentIndex = 0;
-
-    function getShortIdFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get("shortId");
-    }
+    let currentUser = null;
+    let currentShort = null;
 
     async function loadShorts() {
       try {
@@ -142,7 +185,9 @@
             videoUrl: docSnap.data().videoUrl,
             title: docSnap.data().title || "Untitled",
             channelLogo: docSnap.data().channelLogo || "https://via.placeholder.com/40",
-            channelName: docSnap.data().channelName || "Anonymous"
+            channelName: docSnap.data().channelName || "Anonymous",
+            views: docSnap.data().views || 0,
+            channelId: docSnap.data().channelId
           });
         });
 
@@ -160,51 +205,6 @@
         console.error("Error loading shorts:", error.message);
       }
     }
-
-    async function loadShort(index) {
-      if (index >= 0 && index < shortsList.length) {
-        const short = shortsList[index];
-        console.log("Loaded short:", short);
-
-        // Load video
-        if (short.videoUrl) {
-          videoElement.src = short.videoUrl;
-          console.log("Video URL loaded:", short.videoUrl);
-        } else {
-          console.error("Video URL is missing for this short.");
-        }
-
-        // Set short title
-        titleElement.textContent = short.title;
-
-        // Set uploader info
-        channelLogo.src = short.channelLogo;
-        uploaderNameElement.textContent = short.channelName;
-
-        // Increment view count in Firestore
-        incrementViewCount(short.id);
-
-        // Update current index for navigation
-        currentIndex = index;
-
-        window.history.pushState({}, '', `shorts.html?shortId=${short.id}`);
-      }
-    }
-
-    async function incrementViewCount(shortId) {
-      const shortDocRef = doc(db, "shorts", shortId);
-
-      try {
-        await updateDoc(shortDocRef, {
-          views: increment(1)
-        });
-        console.log("View count updated for short:", shortId);
-      } catch (error) {
-        console.error("Error updating view count:", error.message);
-      }
-    }
-
-    loadShorts();
 
     videoElement.addEventListener("click", () => {
       if (videoElement.paused) {
@@ -234,6 +234,109 @@
         loadShort(currentIndex - 1);
       }
     }
+
+    function getShortIdFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("shortId");
+    }
+
+    async function loadShort(index) {
+      if (index >= 0 && index < shortsList.length) {
+        const short = shortsList[index];
+        currentShort = short;
+
+        // Load video
+        if (short.videoUrl) {
+          videoElement.src = short.videoUrl;
+        }
+
+        // Set short title
+        titleElement.textContent = short.title;
+
+        // Set uploader info
+        channelLogo.src = short.channelLogo;
+        uploaderNameElement.textContent = short.channelName;
+
+        // Set current view count
+        viewCountElement.textContent = short.views;
+
+        // Increment view count in Firestore
+        incrementViewCount(short.id);
+
+        // Set current index for navigation
+        currentIndex = index;
+
+        window.history.pushState({}, '', `shorts.html?shortId=${short.id}`);
+
+        // Check subscription status
+        checkSubscription(short.channelId);
+      }
+    }
+
+    async function incrementViewCount(shortId) {
+      const shortDocRef = doc(db, "shorts", shortId);
+
+      try {
+        await updateDoc(shortDocRef, {
+          views: increment(1)
+        });
+        console.log("View count updated for short:", shortId);
+      } catch (error) {
+        console.error("Error updating view count:", error.message);
+      }
+    }
+
+    async function checkSubscription(channelId) {
+      if (currentUser) {
+        const userSubscriptionsRef = collection(db, "users", currentUser.uid, "subscriptions");
+        const q = query(userSubscriptionsRef, where("channelId", "==", channelId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          subscribeBtn.classList.add("subscribed-btn");
+          subscribeBtn.textContent = "Subscribed";
+          subscribeBtn.disabled = true;
+        } else {
+          subscribeBtn.classList.remove("subscribed-btn");
+          subscribeBtn.textContent = "Subscribe";
+          subscribeBtn.disabled = false;
+        }
+      }
+    }
+
+    async function subscribe(channelId) {
+      if (currentUser) {
+        const userSubscriptionsRef = collection(db, "users", currentUser.uid, "subscriptions");
+        await setDoc(doc(userSubscriptionsRef), {
+          channelId: channelId,
+          timestamp: new Date()
+        });
+
+        // Update button state
+        subscribeBtn.classList.add("subscribed-btn");
+        subscribeBtn.textContent = "Subscribed";
+        subscribeBtn.disabled = true;
+
+        // Optionally update the channel's subscriber count here
+        const channelRef = doc(db, "channels", channelId);
+        await updateDoc(channelRef, {
+          subscriberCount: increment(1)
+        });
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      loadShorts();
+    });
+
+    subscribeBtn.addEventListener("click", () => {
+      if (currentUser) {
+        subscribe(currentShort.channelId);
+      } else {
+        alert("Please log in to subscribe.");
+      }
+    });
 
     function goBack() {
       window.location.href = "woow.html";
