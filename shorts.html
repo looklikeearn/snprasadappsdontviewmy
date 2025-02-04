@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LookLike - Video</title>
+    <title>LookLike - Shorts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body, html {
@@ -11,388 +11,416 @@
             padding: 0;
             font-family: Arial, sans-serif;
             background-color: #000;
+            color: white;
+            height: 100%;
         }
-
-        .channel-logo, .channel-name {
-    cursor: pointer; /* Indicates clickable */
-}
-
-.channel-name {
-    font-size: 16px;
-    color: #000;
-    text-decoration: none;
-    margin-left: 10px;
-}
-
-.channel-name:hover {
-    text-decoration: underline; /* Optional hover effect */
-}
-
-
 
         .video-container {
             position: relative;
             width: 100%;
-            max-width: 720px;
-            margin: 0 auto;
-            background-color: #000;
+            height: 100vh; /* Full screen video */
+            background-color: black;
         }
 
         video {
             width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover; /* Ensures the video covers the entire screen */
         }
 
-        .video-info {
+        /* Overlay for buttons and channel info */
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
             padding: 15px;
-            background-color: white;
+            z-index: 1;
         }
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .description {
-            font-size: 14px;
-            color: #666;
-            overflow: hidden;
-            max-height: 40px; /* Show 2 lines */
-            line-height: 20px; /* Approximate height of one line */
-            position: relative;
-        }
-
-        .more-button {
-            color: #00f;
-            cursor: pointer;
-            display: inline-block;
-            margin-top: 5px;
-        }
-
+        /* Left side (channel info) */
         .channel-info {
             display: flex;
-            align-items: center;
-            margin: 10px 0;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-left: 10px;
         }
 
         .channel-logo {
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            margin-right: 10px;
-        }
-
-        .channel-details {
-            flex-grow: 1;
+            margin-bottom: 8px;
         }
 
         .channel-name {
             font-size: 16px;
             font-weight: bold;
-        }
-
-        .subscriber-count {
-            color: #888;
+            margin-bottom: 5px;
         }
 
         .subscribe-button {
-            background-color: black;
+            background-color: #ff0000;
             color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 3px;
             cursor: pointer;
+            font-size: 14px;
             border: none;
         }
 
-        .actions {
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-        }
-
-        .action-button {
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .video-details {
-            margin-top: 10px;
-        }
-
-        .comments-section {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-        }
-
-        .comment-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .related-videos {
-            margin-top: 30px;
-        }
-
-        .related-video {
-            display: inline-block;
-            width: 160px;
-            margin: 10px;
-            cursor: pointer;
-        }
-
-        .related-video img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        .related-videos {
-            margin-top: 30px;
+        /* Right side (action buttons) */
+        .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: flex-end;
             align-items: center;
         }
 
-        .related-video {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 320px;
+        .action-button {
+            font-size: 30px;
+            margin-bottom: 20px;
             cursor: pointer;
+            color: white;
         }
 
-        .related-video img {
-            width: 100%;
-            aspect-ratio: 24 / 13;
-            overflow: hidden;
-        }
-
-        .related-video-title {
-            margin-top: 5px;
-            font-size: 14px;
-            color: #fff;
+        /* Title overlay */
+        .title-overlay {
+            position: absolute;
+            bottom: 80px; /* Positioning title above the channel info */
+            left: 0;
+            right: 0;
             text-align: center;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
         }
 
-
-        .related-video-title {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 5px;
-            color: #fff;
+        .subscribe-button:hover {
+            background-color: #cc0000; /* Darker red on hover */
         }
+
     </style>
 </head>
 <body>
 
 <div class="video-container">
-    <video id="video-player" controls>
+    <video id="video-player" preload="auto" muted autoplay>
         Your browser does not support the video tag.
     </video>
 
-    <div class="video-info">
-        <div id="video-title" class="title">Your Video Title</div>
-        
-        <div id="video-description-container">
-            <div id="video-description" class="description">Your video description goes here...</div>
-            <span id="more-button" class="more-button">More</span>
-        </div>
-
+    <!-- Full screen video overlay (buttons and channel info) -->
+    <div class="video-overlay">
+        <!-- Channel info (left side) -->
         <div class="channel-info">
-            <img src="your-channel-logo-url.jpg" alt="Channel Logo" class="channel-logo" id="channel-logo">
-            <div class="channel-details">
-                <div class="channel-name" id="channel-name">Look Like</div>
-                <div class="subscriber-count" id="subscriber-count">subscribe this channel</div>
-            </div>
+            <img src="" alt="Channel Logo" class="channel-logo" id="channel-logo">
+            <div class="channel-name" id="channel-name">Channel Name</div>
             <button class="subscribe-button" id="subscribe-button">Subscribe</button>
         </div>
 
-        <div class="actions">
+        <!-- Action buttons (right side) -->
+        <div class="action-buttons">
             <div id="likeBtn" class="action-button">
-                <i class="fas fa-thumbs-up"></i> <span id="likeCount"></span>
-            </div>
-            <div id="unlikeBtn" class="action-button">
-                <i class="fas fa-thumbs-down"></i> <span id="unlikeCount"></span>
+                <i class="fas fa-thumbs-up"></i>
             </div>
             <div id="shareBtn" class="action-button">
-                <i class="fas fa-share"></i> Share
+                <i class="fas fa-share"></i>
+            </div>
+            <div id="commentBtn" class="action-button">
+                <i class="fas fa-comment"></i>
             </div>
         </div>
-
-        <div class="video-details">
-            <div id="views">Views: 0</div>
-            <div id="upload-time">Uploaded: N/A</div>
-            <div id="likes">Likes: 0</div>
-        </div>
-
-        <div class="comments-section">
-            <input type="text" class="comment-input" placeholder="Add a comment...">
-        </div>
-
-        <div class="related-videos" id="related-videos">
-            <!-- Related videos will be populated here -->
-        </div>
     </div>
+
+    <!-- Title overlay -->
+    <div class="title-overlay" id="video-title">Your Video Title</div>
 </div>
 
 <script type="module">
-   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
-};
+  // Firebase Configuration
+  const firebaseConfig = {
+      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+      authDomain: "look-like-e8819.firebaseapp.com",
+      projectId: "look-like-e8819",
+      storageBucket: "look-like-e8819.appspot.com",
+      messagingSenderId: "976652364108",
+      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+      measurementId: "G-RPHVKH612W"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-// Getting elements for interaction
-const shortPlayer = document.getElementById('short-player');
-const shortTitle = document.getElementById('short-title');
-const likeBtn = document.getElementById('likeBtn');
-const likeCount = document.getElementById('likeCount');
-const shortDescription = document.getElementById('short-description');
-const moreButton = document.getElementById('more-button');
-const shareBtn = document.getElementById('shareBtn');
-let isDescriptionExpanded = false;
+  const videoPlayer = document.getElementById('video-player');
+  const videoTitle = document.getElementById('video-title');
+  const channelLogo = document.getElementById('channel-logo');
+  const channelName = document.getElementById('channel-name');
+  const subscribeButton = document.getElementById('subscribe-button');
 
-const urlParams = new URLSearchParams(window.location.search);
-const shortId = urlParams.get('shortId');
-let userId;
+  let currentUserId = null;
+  let userId;
+  let currentIndex = 0;
+  let shortsList = [];
 
-// Event listener for "More" button to toggle description
-moreButton.addEventListener('click', () => {
-    if (isDescriptionExpanded) {
-        shortDescription.style.maxHeight = '40px';
-        moreButton.textContent = 'More';
+  const urlParams = new URLSearchParams(window.location.search);
+  let shortId = urlParams.get('shortId');
+
+  // ✅ Fetch all available shorts from Firestore
+  async function fetchShortsList() {
+      try {
+          console.log("Fetching shorts list...");
+          const shortsRef = collection(db, "shorts");
+          const shortsSnapshot = await getDocs(shortsRef);
+
+          shortsList = [];
+          shortsSnapshot.forEach(doc => shortsList.push(doc.id));
+
+          if (shortsList.length === 0) {
+              console.error("No shorts found in Firestore!");
+              videoTitle.textContent = "No videos available!";
+              return;
+          }
+
+          if (!shortId || !shortsList.includes(shortId)) {
+              shortId = shortsList[0]; // Default to the first video
+          }
+
+          currentIndex = shortsList.indexOf(shortId);
+          console.log("Shorts found:", shortsList);
+          console.log("Current index:", currentIndex);
+
+          loadShort();
+      } catch (error) {
+          console.error("Error fetching shorts:", error.message);
+          videoTitle.textContent = "Error loading videos!";
+      }
+  }
+
+  async function loadShort() {
+      if (currentIndex < 0 || currentIndex >= shortsList.length) {
+          console.error("Invalid video index:", currentIndex);
+          videoTitle.textContent = "No more videos!";
+          return;
+      }
+
+      console.log("Loading video at index:", currentIndex);
+      const shortDocRef = doc(db, "shorts", shortsList[currentIndex]);
+      const shortDoc = await getDoc(shortDocRef);
+
+      if (shortDoc.exists()) {
+          const shortData = shortDoc.data();
+          userId = shortData.userId;
+          videoPlayer.src = shortData.videoUrl || '';
+          videoTitle.textContent = shortData.title || "Untitled Short";
+          
+          await updateDoc(shortDocRef, { views: increment(1) });
+          await loadChannelInfo(userId);
+          checkSubscriptionStatus();
+
+          videoPlayer.play();
+      } else {
+          console.error("Short not found!");
+          videoTitle.textContent = "Video not found!";
+      }
+  }
+
+  let lastTap = 0; // Track double taps
+const likeBtn = document.getElementById("likeBtn"); // Get Like Button
+const colors = ["red", "orange", "yellow", "green", "blue", "purple", "brown", "white", "black"]; // Colors array
+let isLiked = false; // Track like status
+
+document.addEventListener("touchstart", (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+
+    if (tapLength < 300 && tapLength > 0) {
+        handleDoubleTap(); // Double-tap → Like/Unlike
     } else {
-        shortDescription.style.maxHeight = 'none';
-        moreButton.textContent = 'Less';
+        setTimeout(() => {
+            if (new Date().getTime() - lastTap >= 300) {
+                handleSingleTap(); // Single-tap → Play/Pause
+            }
+        }, 300);
     }
-    isDescriptionExpanded = !isDescriptionExpanded;
+
+    lastTap = currentTime;
 });
 
-// Function to load the short's details
-async function loadShort() {
-    try {
-        const shortDocRef = doc(db, "shorts", shortId);
-        const shortDoc = await getDoc(shortDocRef);
-        
-        if (shortDoc.exists()) {
-            const shortData = shortDoc.data();
-            userId = shortData.userId;
-            shortPlayer.src = shortData.shortUrl;
-            shortTitle.textContent = shortData.title || "Untitled Short";
-            shortDescription.textContent = shortData.description || "No description available.";
-            
-            // Update views count
-            await updateDoc(shortDocRef, { views: increment(1) });
-            const updatedShortDoc = await getDoc(shortDocRef);
-            const updatedData = updatedShortDoc.data();
-            document.getElementById('views').textContent = `Views: ${updatedData.views || 0}`;
-
-            document.getElementById('likes').textContent = `Likes: ${updatedData.likes || 0}`;
-
-            shortPlayer.play();
-        } else {
-            console.error("No such short found!");
-        }
-    } catch (error) {
-        console.error(`Error fetching short: ${error.message}`);
+function handleSingleTap() {
+    if (videoPlayer.paused) {
+        videoPlayer.play();
+    } else {
+        videoPlayer.pause();
     }
 }
 
-// Handling like/unlike functionality
-likeBtn.addEventListener('click', async () => {
+function handleDoubleTap() {
+    toggleLike();
+}
+
+// Function to toggle like/unlike
+async function toggleLike() {
+    if (!currentUserId) {
+        alert("Please log in to like this video!");
+        return;
+    }
+
     try {
-        const shortDoc = await getDoc(doc(db, "shorts", shortId)); // Get the current short document
-        if (shortDoc.exists()) {
-            const data = shortDoc.data();
-            const userLikes = data.userLikes || {}; // Get the list of users who liked, default to empty object
+        const shortDocRef = doc(db, "shorts", shortsList[currentIndex]);
 
-            // Check if the user has already liked the short
-            if (userLikes[userId]) {
-                // User has already liked, so remove the like
-                await updateDoc(doc(db, "shorts", shortId), {
-                    [`userLikes.${userId}`]: deleteField(), // Remove the user's like
-                    likes: increment(-1), // Decrease like count
-                });
-
-                // Update UI
-                likeBtn.style.color = 'black'; // Reset like button color
-                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) - 1}`;
-            } else {
-                // User has not liked, so add the like
-                await updateDoc(doc(db, "shorts", shortId), {
-                    [`userLikes.${userId}`]: true, // Mark the user as having liked the short
-                    likes: increment(1), // Increase like count
-                });
-
-                // Update UI
-                likeBtn.style.color = 'blue'; // Highlight like button
-                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) + 1}`;
-            }
+        if (isLiked) {
+            await updateDoc(shortDocRef, { likes: increment(-1) }); // Remove like
+            likeBtn.style.background = "transparent"; // Reset color
+        } else {
+            await updateDoc(shortDocRef, { likes: increment(1) }); // Add like
+            showRainbowEffect(); // Show all colors at once
         }
+
+        isLiked = !isLiked; // Toggle state
     } catch (error) {
         console.error("Error toggling like:", error.message);
     }
-});
+}
 
-// Handling user login and subscription
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        userId = user.uid; // Get user ID
-        loadShort(); // Load short details for the logged-in user
-    } else {
-        // Prompt for login if not authenticated
-        alert("Please log in to interact with this short.");
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch((error) => {
-            console.error("Login failed:", error.message);
-        });
-    }
-});
+// Function to apply all 9 colors in a rainbow effect
+function showRainbowEffect() {
+    let colorGradient = colors.join(", "); // Create gradient string
+    likeBtn.style.background = `linear-gradient(45deg, ${colorGradient})`; // Apply gradient
+    likeBtn.style.webkitBackgroundClip = "text"; // Make text colorful
+    likeBtn.style.color = "transparent"; // Hide default color
+}
 
-// Share button functionality
-shareBtn.addEventListener('click', async () => {
-    const shortUrl = window.location.href;
-    const shortTitleText = shortTitle.textContent;
 
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: shortTitleText,
-                url: shortUrl,
-            });
-            console.log('Short shared successfully!');
-        } catch (error) {
-            console.error('Error sharing short:', error.message);
-        }
-    } else {
-        try {
-            await navigator.clipboard.writeText(shortUrl);
-            alert('Short URL copied to clipboard!');
-        } catch (error) {
-            console.error('Failed to copy:', error.message);
-        }
-    }
-});
+  async function loadChannelInfo(userId) {
+      try {
+          const channelDocRef = doc(db, "channels", userId);
+          const channelDoc = await getDoc(channelDocRef);
+          
+          if (channelDoc.exists()) {
+              const channelData = channelDoc.data();
+              channelLogo.src = channelData.channelLogo || 'default-channel-logo.png';
+              channelName.textContent = channelData.channelName || "Unknown Channel";
+          } else {
+              console.error("Channel not found!");
+          }
+      } catch (error) {
+          console.error(`Error loading channel info: ${error.message}`);
+      }
+  }
 
+  async function checkSubscriptionStatus() {
+      if (!currentUserId) return;
+
+      try {
+          const userDocRef = doc(db, "users", currentUserId);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+              const userData = userDoc.data();
+              if (userData.subscribedChannels && userData.subscribedChannels.includes(userId)) {
+                  subscribeButton.textContent = "Subscribed";
+                  subscribeButton.style.backgroundColor = "gold";
+              } else {
+                  subscribeButton.textContent = "Subscribe";
+                  subscribeButton.style.backgroundColor = "red";
+              }
+          }
+      } catch (error) {
+          console.error("Error checking subscription status:", error.message);
+      }
+  }
+
+  async function toggleSubscription() {
+      if (!currentUserId) {
+          alert("Please log in to subscribe!");
+          const provider = new GoogleAuthProvider();
+          signInWithPopup(auth, provider).catch(error => console.error("Login failed:", error.message));
+          return;
+      }
+
+      try {
+          const userDocRef = doc(db, "users", currentUserId);
+          const userDoc = await getDoc(userDocRef);
+
+          let updatedSubscribedChannels = userDoc.exists() ? (userDoc.data().subscribedChannels || []) : [];
+
+          if (updatedSubscribedChannels.includes(userId)) {
+              updatedSubscribedChannels = updatedSubscribedChannels.filter(id => id !== userId);
+              subscribeButton.textContent = "Subscribe";
+              subscribeButton.style.backgroundColor = "red";
+          } else {
+              updatedSubscribedChannels.push(userId);
+              subscribeButton.textContent = "Subscribed";
+              subscribeButton.style.backgroundColor = "gold";
+          }
+
+          await updateDoc(userDocRef, { subscribedChannels: updatedSubscribedChannels });
+      } catch (error) {
+          console.error(`Error toggling subscription: ${error.message}`);
+      }
+  }
+
+  function loadNextVideo() {
+      if (currentIndex < shortsList.length - 1) {
+          currentIndex++;
+          loadShort();
+      } else {
+          console.log("No next video available!");
+      }
+  }
+
+  function loadPreviousVideo() {
+      if (currentIndex > 0) {
+          currentIndex--;
+          loadShort();
+      } else {
+          console.log("No previous video available!");
+      }
+  }
+
+  let touchStartY = 0;
+  let touchEndY = 0;
+
+  document.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+  });
+
+  document.addEventListener("touchend", (e) => {
+      touchEndY = e.changedTouches[0].clientY;
+      handleSwipe();
+  });
+
+  function handleSwipe() {
+      const swipeDistance = touchEndY - touchStartY;
+      if (swipeDistance < -50) {
+          loadNextVideo();  // Swipe Down → Next Video
+      } else if (swipeDistance > 50) {
+          loadPreviousVideo();  // Swipe Up → Previous Video
+      }
+  }
+
+  onAuthStateChanged(auth, (user) => {
+      if (user) {
+          currentUserId = user.uid;
+          checkSubscriptionStatus();
+      }
+  });
+
+  subscribeButton.addEventListener('click', toggleSubscription);
+
+  fetchShortsList();
 </script>
+
 
 
 </body>
