@@ -63,8 +63,8 @@
         }
 
         .container {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns layout */
             gap: 10px;
             padding: 20px;
             overflow-y: auto;
@@ -74,27 +74,38 @@
 
         .short-thumbnail { 
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border-radius: 10px;
+            position: relative;
             background-color: white;
+            border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             cursor: pointer; 
+            overflow: hidden;
+            height: 300px; /* Set a fixed height for each thumbnail container */
         }
 
         .short-thumbnail img { 
-            width: 150px; 
-            height: 250px; 
-            object-fit: cover; 
-            border-radius: 10px;
+            width: 100%; 
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
-        .short-thumbnail .details {
-            flex: 1;
-            font-size: 16px;
+        .short-thumbnail .title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+            color: white;
+            font-size: 14px;
             font-weight: bold;
-            color: #333;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden; /* Hide overflow text */
+            text-align: center;
         }
 
         footer { 
@@ -158,10 +169,12 @@
         <option value="0.5">0.5x</option>
         <option value="1">1x</option>
         <option value="1.5">1.5x</option>
-        <option value="2" selected>2x</option>
-        <option value="3">3x</option>
-        <option value="4">4x</option>
-        <option value="5">5x</option>
+        <option value="2">2x</option>
+        <option value="4" selected>4x</option>
+        <option value="8">8x</option>
+        <option value="9">9x</option>
+        <option value="10">10x</option>
+        <option value="15">Rocket</option>
     </select>
 </div>
 
@@ -181,12 +194,12 @@
 
     const firebaseConfig = {
         apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
+        authDomain: "look-like-e8819.firebaseapp.com",
+        projectId: "look-like-e8819",
+        storageBucket: "look-like-e8819.appspot.com",
+        messagingSenderId: "976652364108",
+        appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+        measurementId: "G-RPHVKH612W"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -199,7 +212,7 @@
     const speedDropdown = document.getElementById('swipeSpeed');
 
     let isFavActive = false;
-    let swipeSpeed = 2;  // Default swipe speed
+    let swipeSpeed = 5;  // Default swipe speed
     let scrollPosition = 0;
     let containerHeight = 0;
     let shortsHeight = 0;
@@ -232,45 +245,44 @@
     });
 
     // Fetch shorts data from Firebase
-    // Fetch shorts data from Firebase
-async function fetchShorts() {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'shorts'));
-        querySnapshot.forEach(doc => {
-            const data = doc.data();
-            const thumbnail = data.thumbnailUrl || 'default-thumbnail.jpg';
-            const title = data.title || 'Untitled';
-            const shortId = doc.id;  // Get the unique ID for navigation
+    async function fetchShorts() {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'shorts'));
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const thumbnail = data.thumbnailUrl || 'default-thumbnail.jpg';
+                const title = data.title || 'Untitled';
+                const shortId = doc.id;  // Get the unique ID for navigation
 
-            const shortDiv = document.createElement('div');
-            shortDiv.className = 'short-thumbnail';
-            shortDiv.dataset.shortId = shortId;  // Store the short ID for reference
+                const shortDiv = document.createElement('div');
+                shortDiv.className = 'short-thumbnail';
+                shortDiv.dataset.shortId = shortId;  // Store the short ID for reference
 
-            shortDiv.innerHTML = `
-                <img src="${thumbnail}" alt="Short Thumbnail">
-                <div class="details">${title}</div>
-            `;
+                shortDiv.innerHTML = `
+                    <img src="${thumbnail}" alt="Short Thumbnail">
+                    <div class="title">${title}</div>
+                `;
 
-            // Navigate to the selected short when the thumbnail is clicked
-            shortDiv.addEventListener('click', () => {
-                window.location.href = `shorts.html?shortId=${shortId}`;
+                // Navigate to the selected short when the thumbnail is clicked
+                shortDiv.addEventListener('click', () => {
+                    window.location.href = `shorts.html?shortId=${shortId}`;
+                });
+
+                shortsContainer.appendChild(shortDiv);
             });
 
-            shortsContainer.appendChild(shortDiv);
-        });
+            containerHeight = shortsContainer.offsetHeight;
+            shortsHeight = shortsContainer.scrollHeight;
 
-        containerHeight = shortsContainer.offsetHeight;
-        shortsHeight = shortsContainer.scrollHeight;
-
-        if (isFavActive) {
-            startAutoScroll();
+            if (isFavActive) {
+                startAutoScroll();
+            }
+        } catch (error) {
+            console.error("Error fetching shorts: ", error);
         }
-    } catch (error) {
-        console.error("Error fetching shorts: ", error);
     }
-}
 
-fetchShorts();
+    fetchShorts();
 
     // Automatic scroll logic
     function startAutoScroll() {
