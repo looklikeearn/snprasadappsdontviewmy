@@ -202,6 +202,10 @@
             <div id="video-description" class="description">Your video description goes here...</div>
             <span id="more-button" class="more-button">More</span>
         </div>
+        <div id="violateBtn" class="action-button">
+           <i class="fas fa-exclamation-circle"></i> Report
+        </div>
+
 
         <div class="channel-info">
             <img src="your-channel-logo-url.jpg" alt="Channel Logo" class="channel-logo" id="channel-logo">
@@ -242,6 +246,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
@@ -262,6 +267,7 @@
     const videoPlayer = document.getElementById('video-player');
     const videoTitle = document.getElementById('video-title');
     const shareBtn = document.getElementById('shareBtn');
+    const violateBtn = document.getElementById('violateBtn');
     const videoDescription = document.getElementById('video-description');
     const moreButton = document.getElementById('more-button');
     const channelLogo = document.getElementById('channel-logo');
@@ -289,6 +295,59 @@
         }
         isDescriptionExpanded = !isDescriptionExpanded;
     });
+
+    async function reportViolation() {
+    if (!currentUserId) {
+        alert("You must be logged in to report a violation.");
+        return;
+    }
+
+    try {
+        const videoDoc = await getDoc(videoDocRef);
+
+        if (!videoDoc.exists()) {
+            console.error("Video not found in Firestore.");
+            return;
+        }
+
+        const videoData = videoDoc.data();
+        const userViolations = videoData.violations || {}; // Get violations object
+        const currentViolationCount = videoData.violationCount || 0;
+
+        // Check if user already reported
+        if (userViolations[currentUserId]) {
+            alert("You have already reported this video.");
+            return;
+        }
+
+        // Update Firestore: Add user report and increment violation count
+        await updateDoc(videoDocRef, {
+            [`violations.${currentUserId}`]: true, // Mark user as having reported
+            violationCount: increment(1), // Increase violation count
+        });
+
+        // Fetch updated data
+        const updatedVideoDoc = await getDoc(videoDocRef);
+        const updatedData = updatedVideoDoc.data();
+
+        console.log("Updated violation count:", updatedData.violationCount); // Debugging log
+
+        // If violation count reaches 10, delete the video
+        if (updatedData.violationCount >= 10) {
+            console.log("Violation limit reached. Deleting video..."); // Debugging log
+            await deleteDoc(videoDocRef);
+            alert("This video has been removed due to multiple reports.");
+            window.location.href = "index.html"; // Redirect user after removal
+        } else {
+            alert(`Thank you for reporting. Current reports: ${updatedData.violationCount}/10`);
+        }
+    } catch (error) {
+        console.error("Error reporting violation:", error.message);
+    }
+}
+
+// Add event listener for violation button
+violateBtn.addEventListener('click', reportViolation);
 
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId');
