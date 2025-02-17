@@ -379,12 +379,7 @@ async function loadVideos() {
     }
 }
 
-    onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        // If no user is logged in, redirect to login page
-        window.location.href = "login.html";
-    }
-});
+    
 
 // Replace current state with new URL without reloading
 window.history.replaceState(null, '', window.location.href);
