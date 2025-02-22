@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.earn.looklike",
+      "sha256_cert_fingerprints": ["21:73:EC:AA:50:54:A3:74:D2:B2:70:1A:2F:81:C6:AB:AA:1D:07:B0:CD:DD:B5:62:F6:E7:5D:04:F0:77:0B:FF"]
+    }
+  }
+]
