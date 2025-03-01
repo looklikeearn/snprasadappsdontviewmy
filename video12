@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LookLike - Video</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+        }
+
+        .channel-logo, .channel-name {
+    cursor: pointer; /* Indicates clickable */
+}
+
+.channel-name {
+    font-size: 16px;
+    color: #000;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.channel-name:hover {
+    text-decoration: underline; /* Optional hover effect */
+}
+
+
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            background-color: #000;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        .video-info {
+            padding: 15px;
+            background-color: white;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #666;
+            overflow: hidden;
+            max-height: 40px; /* Show 2 lines */
+            line-height: 20px; /* Approximate height of one line */
+            position: relative;
+        }
+
+        .more-button {
+            color: #00f;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .channel-logo {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .channel-details {
+            flex-grow: 1;
+        }
+
+        .channel-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .subscriber-count {
+            color: #888;
+        }
+
+        .subscribe-button {
+            background-color: black;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+
+        .action-button {
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .video-details {
+            margin-top: 10px;
+        }
+
+        .comments-section {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .related-videos {
+            margin-top: 30px;
+        }
+
+        .related-video {
+            display: inline-block;
+            width: 160px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .related-videos {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .related-video {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 320px;
+            cursor: pointer;
+        }
+
+        .related-video img {
+            width: 100%;
+            aspect-ratio: 24 / 13;
+            overflow: hidden;
+        }
+
+        .related-video-title {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+        }
+
+
+        .related-video-title {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 5px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="video-container">
+    <video id="video-player" controls>
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="video-info">
+        <div id="video-title" class="title">Your Video Title</div>
+        
+        <div id="video-description-container">
+            <div id="video-description" class="description">Your video description goes here...</div>
+            <span id="more-button" class="more-button">More</span>
+        </div>
+
+        <div class="channel-info">
+            <img src="your-channel-logo-url.jpg" alt="Channel Logo" class="channel-logo" id="channel-logo">
+            <div class="channel-details">
+                <div class="channel-name" id="channel-name">Look Like</div>
+                <div class="subscriber-count" id="subscriber-count">subscribe this channel</div>
+            </div>
+            <button class="subscribe-button" id="subscribe-button">Subscribe</button>
+        </div>
+
+        <div class="actions">
+            <div id="likeBtn" class="action-button">
+                <i class="fas fa-thumbs-up"></i> <span id="likeCount"></span>
+            </div>
+            <div id="unlikeBtn" class="action-button">
+                <i class="fas fa-thumbs-down"></i> <span id="unlikeCount"></span>
+            </div>
+            <div id="shareBtn" class="action-button">
+                <i class="fas fa-share"></i> Share
+            </div>
+        </div>
+
+        <!-- AdSense Ad Before Video -->
+<div id="ad-container" style="text-align:center; display: block;">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6683639201293613"
+        crossorigin="anonymous"></script>
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-6683639201293613"
+        data-ad-slot="4882605675"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+<!-- Video Player -->
+<video id="video-player" controls style="display: none;">
+    Your browser does not support the video tag.
+</video>
+
+
+        <div class="video-details">
+            <div id="views">Views: 0</div>
+            <div id="upload-time">Uploaded: N/A</div>
+            <div id="likes">Likes: 0</div>
+        </div>
+
+        <div class="comments-section">
+            <input type="text" class="comment-input" placeholder="Add a comment...">
+        </div>
+
+        <div id="violateBtn" class="action-button">
+            <i class="fas fa-exclamation-circle"></i> Report
+        </div>
+        
+
+        <div class="related-videos" id="related-videos">
+            <!-- Related videos will be populated here -->
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+  authDomain: "look-like-e8819.firebaseapp.com",
+  projectId: "look-like-e8819",
+  storageBucket: "look-like-e8819.appspot.com",
+  messagingSenderId: "976652364108",
+  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+  measurementId: "G-RPHVKH612W"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const videoPlayer = document.getElementById('video-player');
+    const videoTitle = document.getElementById('video-title');
+    const shareBtn = document.getElementById('shareBtn');
+    const videoDescription = document.getElementById('video-description');
+    const moreButton = document.getElementById('more-button');
+    const channelLogo = document.getElementById('channel-logo');
+    const channelName = document.getElementById('channel-name');
+    const subscriberCount = document.getElementById('subscriber-count');
+    const subscribeButton = document.getElementById('subscribe-button');
+    const relatedVideosContainer = document.getElementById('related-videos');
+    let isDescriptionExpanded = false;
+
+    channelLogo.addEventListener('click', () => {
+        window.location.href = `television.html?userId=${userId}`;
+    });
+
+    channelName.addEventListener('click', () => {
+        window.location.href = `television.html?userId=${userId}`;
+    });
+
+    moreButton.addEventListener('click', () => {
+        if (isDescriptionExpanded) {
+            videoDescription.style.maxHeight = '40px';
+            moreButton.textContent = 'More';
+        } else {
+            videoDescription.style.maxHeight = 'none';
+            moreButton.textContent = 'Less';
+        }
+        isDescriptionExpanded = !isDescriptionExpanded;
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('videoId');
+    let userId;
+
+    async function saveViewingHistory(user, videoId, videoTitleText) {
+        try {
+            const historyRef = doc(db, "users", user.uid, "viewingHistory", videoId);
+            await setDoc(historyRef, {
+                videoId: videoId,
+                videoTitle: videoTitleText,
+                viewedAt: new Date()
+            });
+            console.log('Viewing history saved successfully.');
+        } catch (error) {
+            console.error("Error saving viewing history:", error.message);
+        }
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        const intervals = [
+            { label: 'year', seconds: 31536000 },
+            { label: 'month', seconds: 2592000 },
+            { label: 'day', seconds: 86400 },
+            { label: 'hour', seconds: 3600 },
+            { label: 'minute', seconds: 60 },
+            { label: 'second', seconds: 1 }
+        ];
+        for (const interval of intervals) {
+            const count = Math.floor(seconds / interval.seconds);
+            if (count >= 1) {
+                return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+            }
+        }
+        return 'just now';
+    }
+
+    const violateBtn = document.getElementById('violateBtn');
+
+async function reportViolation() {
+    if (!currentUserId) {
+        alert("You must be logged in to report a violation.");
+        return;
+    }
+
+    try {
+        const videoDoc = await getDoc(videoDocRef);
+
+        if (!videoDoc.exists()) {
+            console.error("Video not found in Firestore.");
+            return;
+        }
+
+        const videoData = videoDoc.data();
+        const userViolations = videoData.violations || {}; // Get violations object
+        const currentViolationCount = videoData.violationCount || 0;
+
+        // Check if user already reported
+        if (userViolations[currentUserId]) {
+            alert("You have already reported this video.");
+            return;
+        }
+
+        // Update Firestore: Add user report and increment violation count
+        await updateDoc(videoDocRef, {
+            [`violations.${currentUserId}`]: true, // Mark user as having reported
+            violationCount: increment(1), // Increase violation count
+        });
+
+        // Fetch updated data
+        const updatedVideoDoc = await getDoc(videoDocRef);
+        const updatedData = updatedVideoDoc.data();
+
+        console.log("Updated violation count:", updatedData.violationCount); // Debugging log
+
+        // If violation count reaches 10, delete the video
+        if (updatedData.violationCount >= 10) {
+            console.log("Violation limit reached. Deleting video..."); // Debugging log
+            await deleteDoc(videoDocRef);
+            alert("This video has been removed due to multiple reports.");
+            window.location.href = "index.html"; // Redirect user after removal
+        } else {
+            alert(`Thank you for reporting. Current reports: ${updatedData.violationCount}/10`);
+        }
+    } catch (error) {
+        console.error("Error reporting violation:", error.message);
+    }
+}
+
+// Add event listener for violation button
+violateBtn.addEventListener('click', reportViolation);
+
+    
+    const likeBtn = document.getElementById('likeBtn');
+const unlikeBtn = document.getElementById('unlikeBtn');
+const likeCount = document.getElementById('likes');
+const videoDocRef = doc(db, "videos", videoId);
+
+let currentUserId = null;
+
+// Fetch user info
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUserId = user.uid;
+        checkUserReactionStatus(); // Check user reaction status on load
+    }
+});
+
+// Add event listener for the like button
+likeBtn.addEventListener('click', async () => {
+    try {
+        const videoDoc = await getDoc(videoDocRef); // Get the current video document
+        if (videoDoc.exists()) {
+            const data = videoDoc.data();
+            const userLikes = data.userLikes || {}; // Get the list of users who liked, default to empty object
+
+            // Check if the user has already liked the video
+            if (userLikes[currentUserId]) {
+                // User has already liked, so remove the like
+                await updateDoc(videoDocRef, {
+                    [`userLikes.${currentUserId}`]: deleteField(), // Remove the user's like
+                    likes: increment(-1), // Decrease like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'black'; // Reset like button color
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) - 1}`;
+            } else {
+                // User has not liked, so add the like
+                await updateDoc(videoDocRef, {
+                    [`userLikes.${currentUserId}`]: true, // Mark the user as having liked the video
+                    likes: increment(1), // Increase like count
+                });
+
+                // Update UI
+                likeBtn.style.color = 'blue'; // Highlight like button
+                likeCount.textContent = `Likes: ${parseInt(likeCount.textContent.split(": ")[1]) + 1}`;
+            }
+        }
+    } catch (error) {
+        console.error("Error toggling like:", error.message);
+    }
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const adContainer = document.getElementById('ad-container');
+    const videoPlayer = document.getElementById('video-player');
+
+    // Hide the video initially
+    videoPlayer.style.display = 'none';
+
+    // Show ad for 5 seconds before video starts
+    setTimeout(() => {
+        adContainer.style.display = 'none'; // Hide ad after 5 seconds
+        videoPlayer.style.display = 'block'; // Show video
+        videoPlayer.play(); // Auto-play the video
+    }, 5000); // 5 seconds delay
+});
+
+
+
+    async function loadVideo() {
+        try {
+            const videoDocRef = doc(db, "videos", videoId);
+            const videoDoc = await getDoc(videoDocRef);
+            
+            if (videoDoc.exists()) {
+                const videoData = videoDoc.data();
+                userId = videoData.userId;
+                videoPlayer.src = videoData.videoUrl;
+                videoTitle.textContent = videoData.title || "Untitled Video";
+                videoDescription.textContent = videoData.description || "No description available.";
+
+                await updateDoc(videoDocRef, { views: increment(1) });
+                const updatedVideoDoc = await getDoc(videoDocRef);
+                const updatedData = updatedVideoDoc.data();
+                document.getElementById('views').textContent = `Views: ${updatedData.views || 0}`;
+
+                if (updatedData.timestamp) {
+                    const uploadDate = new Date(updatedData.timestamp.seconds * 1000);
+                    document.getElementById('upload-time').textContent = `Uploaded: ${timeAgo(uploadDate)}`;
+                } else {
+                    document.getElementById('upload-time').textContent = "Uploaded: N/A";
+                }
+
+                document.getElementById('likes').textContent = `Likes: ${updatedData.likes || 0}`;
+
+                await loadChannelInfo(userId);
+                videoPlayer.play();
+
+                // Save viewing history if user is logged in
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        saveViewingHistory(user, videoId, videoData.title);
+                    }
+                });
+
+                await loadRelatedVideos(videoData.category);
+            } else {
+                console.error("No such video found!");
+            }
+        } catch (error) {
+            console.error(`Error fetching video: ${error.message}`);
+        }
+    }
+
+    async function loadChannelInfo(userId) {
+        try {
+            const channelDocRef = doc(db, "channels", userId);
+            const channelDoc = await getDoc(channelDocRef);
+            
+            if (channelDoc.exists()) {
+                const channelData = channelDoc.data();
+                channelLogo.src = channelData.channelLogo || 'default-channel-logo.png';
+                channelName.textContent = channelData.channelName || "Unknown Channel";
+                subscriberCount.textContent = `${channelData.subscriberCount || 0} subscribers`;
+            } else {
+                console.error("No such channel found!");
+            }
+        } catch (error) {
+            console.error(`Error loading channel info: ${error.message}`);
+        }
+    }
+
+    async function loadRelatedVideos(category) {
+        try {
+            const q = query(collection(db, "videos"), where("category", "==", category));
+            const querySnapshot = await getDocs(q);
+            relatedVideosContainer.innerHTML = '';  // Clear any existing videos
+            
+            querySnapshot.forEach(doc => {
+                const videoData = doc.data();
+                const videoThumbnail = document.createElement('div');
+                videoThumbnail.classList.add('related-video');
+                videoThumbnail.innerHTML = `
+                    <img src="${videoData.thumbnailUrl}" alt="${videoData.title}" />
+                    <div class="related-video-title">${videoData.title}</div>
+                `;
+                videoThumbnail.addEventListener('click', () => {
+                    window.location.href = `?videoId=${doc.id}`;
+                });
+
+                relatedVideosContainer.appendChild(videoThumbnail);
+            });
+        } catch (error) {
+            console.error('Error loading related videos:', error);
+        }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            checkSubscriptionStatus(user.uid);
+            subscribeButton.addEventListener('click', () => {
+                toggleSubscription(user.uid);
+            });
+        } else {
+            subscribeButton.addEventListener('click', () => {
+                alert("Please log in to subscribe to this channel.");
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider).catch(error => console.error("Login failed:", error.message));
+            });
+        }
+    });
+
+    async function checkSubscriptionStatus(currentUserId) {
+        try {
+            const userDocRef = doc(db, "users", currentUserId);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.subscribedChannels && userData.subscribedChannels.includes(userId)) {
+                    subscribeButton.textContent = "Subscribed";
+                    subscribeButton.style.backgroundColor = "gold";
+                } else {
+                    subscribeButton.textContent = "Subscribe";
+                    subscribeButton.style.backgroundColor = "black";
+                }
+            }
+        } catch (error) {
+            console.error("Error checking subscription status:", error.message);
+        }
+    }
+
+    async function toggleSubscription(currentUserId) {
+        try {
+            const channelDocRef = doc(db, "channels", userId);
+            const userDocRef = doc(db, "users", currentUserId);
+            const channelDoc = await getDoc(channelDocRef);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (channelDoc.exists() && userDoc.exists()) {
+                const channelData = channelDoc.data();
+                const userData = userDoc.data();
+                let updatedSubscribedChannels = userData.subscribedChannels || [];
+    
+                if (updatedSubscribedChannels.includes(userId)) {
+                    updatedSubscribedChannels = updatedSubscribedChannels.filter(id => id !== userId);
+                    await updateDoc(userDocRef, { subscribedChannels: updatedSubscribedChannels });
+                    await updateDoc(channelDocRef, { subscriberCount: increment(-1) });
+                    subscribeButton.textContent = "Subscribe";
+                    subscribeButton.style.backgroundColor = "black";
+                } else {
+                    updatedSubscribedChannels.push(userId);
+                    await updateDoc(userDocRef, { subscribedChannels: updatedSubscribedChannels });
+                    await updateDoc(channelDocRef, { subscriberCount: increment(1) });
+                    subscribeButton.textContent = "Subscribed";
+                    subscribeButton.style.backgroundColor = "gold";
+                }
+    
+                const updatedChannelDoc = await getDoc(channelDocRef);
+                subscriberCount.textContent = `${updatedChannelDoc.data().subscriberCount} subscribers`;
+            }
+        } catch (error) {
+            console.error(`Error toggling subscription: ${error.message}`);
+        }
+    }
+
+    shareBtn.addEventListener('click', async () => {
+        const videoUrl = window.location.href;
+        const videoTitleText = videoTitle.textContent;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: videoTitleText,
+                    url: videoUrl,
+                });
+                console.log('Video shared successfully!');
+            } catch (error) {
+                console.error('Error sharing video:', error.message);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(videoUrl);
+                alert('Video URL copied to clipboard!');
+            } catch (error) {
+                console.error('Failed to copy:', error.message);
+            }
+        }
+    });
+
+    loadVideo();
+</script>
+
+
+</body>
+</html>
