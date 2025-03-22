@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Video Preview & Download</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.5/dist/ffmpeg.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            padding: 20px;
+        }
+        h1 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            margin: auto;
+        }
+        input, button {
+            width: 90%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            display: block;
+        }
+        button {
+            background: #ff6f61;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #d83e32;
+        }
+        canvas {
+            width: 100%;
+            background: black;
+            border-radius: 10px;
+        }
+        #downloadBtn {
+            display: none;
+            background: #28a745;
+            text-decoration: none;
+            padding: 10px;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        #status {
+            color: white;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎥 Reverse Video Preview & Download 🎬</h1>
+    <div class="container">
+        <input type="file" id="videoInput" accept="video/mp4,video/webm">
+        <canvas id="canvasPreview"></canvas>
+        <button id="reversePreviewBtn">🔄 Reverse Preview</button>
+        <button id="reverseDownloadBtn">⬇ Download Reversed Video</button>
+        <p id="status"></p>
+        <a id="downloadBtn" download="reversed_video.mp4">Download Reversed Video</a>
+    </div>
+
+    <script>
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({ log: true });
+
+        let videoInput = document.getElementById('videoInput');
+        let reversePreviewBtn = document.getElementById('reversePreviewBtn');
+        let reverseDownloadBtn = document.getElementById('reverseDownloadBtn');
+        let downloadBtn = document.getElementById('downloadBtn');
+        let statusText = document.getElementById('status');
+        let canvas = document.getElementById('canvasPreview');
+        let ctx = canvas.getContext('2d');
+
+        let videoBuffer = [];
+
+        // Reverse Preview (Extract Frames & Play in Reverse)
+        reversePreviewBtn.addEventListener('click', async function() {
+            if (!videoInput.files.length) {
+                alert("Please select a video first!");
+                return;
+            }
+
+            let file = videoInput.files[0];
+            let url = URL.createObjectURL(file);
+
+            let video = document.createElement('video');
+            video.src = url;
+            video.crossOrigin = "anonymous";
+            video.muted = true;
+
+            statusText.textContent = "Extracting frames...";
+
+            video.addEventListener('loadeddata', async function () {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                video.currentTime = 0;
+                video.play();
+
+                let frameCount = 0;
+                let frameInterval = 0.1; // Extract frame every 0.1 sec
+                videoBuffer = [];
+
+                let captureFrame = () => {
+                    if (video.currentTime >= video.duration) {
+                        playReverseFrames();
+                        return;
+                    }
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    videoBuffer.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+                    video.currentTime += frameInterval;
+                    requestAnimationFrame(captureFrame);
+                };
+
+                captureFrame();
+            });
+        });
+
+        function playReverseFrames() {
+            statusText.textContent = "Playing in reverse...";
+
+            let i = videoBuffer.length - 1;
+            let playFrame = () => {
+                if (i < 0) return;
+                ctx.putImageData(videoBuffer[i], 0, 0);
+                i--;
+                setTimeout(playFrame, 1000 / 30);
+            };
+            playFrame();
+        }
+
+        // Reverse & Download
+        reverseDownloadBtn.addEventListener('click', async function() {
+            if (!videoInput.files.length) {
+                alert("Please select a video first!");
+                return;
+            }
+
+            reverseDownloadBtn.textContent = "Processing...";
+            reverseDownloadBtn.disabled = true;
+            statusText.textContent = "Loading FFmpeg...";
+
+            if (!ffmpeg.isLoaded()) {
+                await ffmpeg.load();
+            }
+
+            let file = videoInput.files[0];
+            let fileName = file.name;
+            let fileType = file.type.split("/")[1]; // mp4 or webm
+
+            statusText.textContent = "Reading file...";
+            ffmpeg.FS('writeFile', fileName, await fetchFile(file));
+
+            statusText.textContent = "Reversing video...";
+            await ffmpeg.run('-i', fileName, '-vf', 'reverse', '-af', 'areverse', 'output.' + fileType);
+
+            statusText.textContent = "Processing complete!";
+            
+            let reversedData = ffmpeg.FS('readFile', 'output.' + fileType);
+            let blob = new Blob([reversedData.buffer], { type: 'video/' + fileType });
+            let url = URL.createObjectURL(blob);
+
+            downloadBtn.href = url;
+            downloadBtn.style.display = "block";
+
+            reverseDownloadBtn.textContent = "⬇ Download Reversed Video";
+            reverseDownloadBtn.disabled = false;
+        });
+    </script>
+
+</body>
+</html>
