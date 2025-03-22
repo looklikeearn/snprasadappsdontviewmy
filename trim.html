@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Video Trimmer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .trim-option {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+        }
+        select, input[type="number"], button {
+            margin: 5px;
+        }
+        h3 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multiple Video Trimmer</h1>
+    
+    <label for="video-file">Choose a video: </label>
+    <input type="file" id="video-file" accept="video/*" onchange="loadVideo()">
+    
+    <br><br>
+    
+    <div id="video-container">
+        <video id="video" controls>
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    
+    <div class="controls">
+        <h3>Trim Options</h3>
+        <div id="trim-options"></div>
+        <button onclick="addTrim()">Add Trim</button>
+        <br><br>
+        <button onclick="clearTrims()">Clear All Trims</button>
+    </div>
+
+    <br>
+    <button onclick="downloadAllTrims()">Download All Trims (MP4)</button>
+
+    <script>
+        const videoElement = document.getElementById('video');
+        const trimOptionsContainer = document.getElementById('trim-options');
+        const videoFileInput = document.getElementById('video-file');
+        let videoDuration = 0;
+        let trims = [];
+
+        function loadVideo() {
+            const file = videoFileInput.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                videoElement.src = fileURL;
+                videoElement.onloadedmetadata = function () {
+                    videoDuration = videoElement.duration;
+                };
+            }
+        }
+
+        function addTrim() {
+            const trimId = trims.length + 1;
+
+            const trimOption = document.createElement('div');
+            trimOption.classList.add('trim-option');
+            trimOption.id = 'trim-' + trimId;
+
+            trimOption.innerHTML = `
+                <label for="start-time-${trimId}">Trim ${trimId} Start:</label>
+                <input type="number" id="start-time-${trimId}" min="0" value="0" step="0.1" max="${videoDuration}">
+                <label for="end-time-${trimId}">End:</label>
+                <input type="number" id="end-time-${trimId}" min="0" value="10" step="0.1" max="${videoDuration}">
+                <button onclick="setTrim(${trimId})">Set Trim</button>
+            `;
+            trimOptionsContainer.appendChild(trimOption);
+        }
+
+        function setTrim(trimId) {
+            const startTime = parseFloat(document.getElementById('start-time-' + trimId).value);
+            const endTime = parseFloat(document.getElementById('end-time-' + trimId).value);
+
+            if (startTime >= endTime || startTime < 0 || endTime > videoDuration) {
+                alert("Invalid trim! Ensure Start Time < End Time and within the video duration.");
+                return;
+            }
+
+            trims[trimId - 1] = { startTime, endTime };
+            alert(`Trim ${trimId} set: Start Time: ${startTime}s, End Time: ${endTime}s`);
+        }
+
+        async function downloadAllTrims() {
+            if (trims.length === 0) {
+                alert("No trims set! Please add and set trims before downloading.");
+                return;
+            }
+
+            const recordedChunks = [];
+            const stream = videoElement.captureStream();
+            const mediaRecorder = new MediaRecorder(stream);
+            let currentTrimIndex = 0;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                if (currentTrimIndex < trims.length - 1) {
+                    currentTrimIndex++;
+                    startRecordingTrim();
+                } else {
+                    // Combine all trims and download as MP4
+                    const blob = new Blob(recordedChunks, { type: "video/mp4" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "Trimmed_Video.mp4";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            };
+
+            function startRecordingTrim() {
+                const { startTime, endTime } = trims[currentTrimIndex];
+                videoElement.currentTime = startTime;
+                videoElement.play();
+
+                mediaRecorder.start();
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    videoElement.pause();
+                }, (endTime - startTime) * 1000);
+            }
+
+            startRecordingTrim();
+        }
+
+        function clearTrims() {
+            trims = [];
+            trimOptionsContainer.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
