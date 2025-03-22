@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mute and Download Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        
+        input[type="file"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        video {
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="videoInput" accept="video/mp4,video/webm">
+    <video id="videoPreview" controls></video>
+    <button id="muteButton">Mute & Download</button>
+
+    <script>
+        document.getElementById('videoInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const video = document.getElementById('videoPreview');
+                video.src = url;
+            }
+        });
+
+        document.getElementById('muteButton').addEventListener('click', async function() {
+            const video = document.getElementById('videoPreview');
+            if (!video.src) {
+                alert("Please upload a video first");
+                return;
+            }
+
+            try {
+                const stream = video.captureStream();
+                const audioTracks = stream.getAudioTracks();
+                audioTracks.forEach(track => track.stop());
+
+                const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                const chunks = [];
+
+                recorder.ondataavailable = event => chunks.push(event.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const mutedUrl = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = mutedUrl;
+                    a.download = 'muted_video.webm';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+                
+                recorder.start();
+                setTimeout(() => recorder.stop(), video.duration * 1000);
+            } catch (error) {
+                alert("Your browser may not support video recording.");
+            }
+        });
+    </script>
+</body>
+</html>
