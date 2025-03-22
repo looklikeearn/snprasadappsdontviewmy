@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Editor - Merge Audio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.js/0.10.1/ffmpeg.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload Video</h2>
+    <input type="file" id="videoInput" accept="video/*"><br>
+
+    <h2>Upload Music</h2>
+    <input type="file" id="audioInput" accept="audio/*"><br>
+
+    <button id="mergeButton" onclick="mergeFiles()">Merge & Download</button>
+
+    <script>
+        async function mergeFiles() {
+            const videoFile = document.getElementById("videoInput").files[0];
+            const audioFile = document.getElementById("audioInput").files[0];
+
+            if (!videoFile || !audioFile) {
+                alert("Please upload both a video and an audio file.");
+                return;
+            }
+
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
+
+            await ffmpeg.load();
+
+            // Read the input files
+            ffmpeg.FS("writeFile", "input.mp4", await fetchFile(videoFile));
+            ffmpeg.FS("writeFile", "input.mp3", await fetchFile(audioFile));
+
+            // Merge audio and video
+            await ffmpeg.run("-i", "input.mp4", "-i", "input.mp3", "-c:v", "copy", "-c:a", "aac", "-strict", "experimental", "output.mp4");
+
+            // Read output file
+            const data = ffmpeg.FS("readFile", "output.mp4");
+
+            // Convert data to a Blob
+            const blob = new Blob([data.buffer], { type: "video/mp4" });
+            const url = URL.createObjectURL(blob);
+
+            // Create a download link
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "merged_video.mp4";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Clean up
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
+</body>
+</html>
