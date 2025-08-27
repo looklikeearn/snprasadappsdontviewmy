@@ -1,0 +1,248 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>India  Media</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+      color: rgb(6, 3, 177);
+      padding: 15px 20px;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    header i {
+      cursor: pointer;
+      font-size: 24px;
+      transition: color 0.3s ease;
+    }
+
+    header i:hover { color: #ff9933; }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+
+    .post-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .post-header img {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .post-header .username {
+      font-weight: bold;
+      font-size: 16px;
+      color: #222;
+    }
+
+    .post-content {
+      padding: 10px 15px;
+    }
+
+    .post-content img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      margin-top: 10px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .post-content img:hover { transform: scale(1.02); }
+
+    .post-actions {
+      display: flex;
+      align-items: center;
+      padding: 8px 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .like-btn {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: #555;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .like-btn i { margin-right: 5px; }
+
+    .like-btn.liked { color: #0a5eb7; }
+
+    .like-btn:hover { color: #ff9933; }
+
+    /* Modal for full image */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal img {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 10px;
+    }
+
+    .modal:target { display: flex; }
+  </style>
+</head>
+<body>
+  <header>
+    India Media
+  </header>
+
+  <div class="container" id="posts-container">
+    <!-- Posts will be appended here -->
+  </div>
+
+  <div class="modal" id="imageModal">
+    <img id="modalImg" src="" alt="Full Image">
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+      authDomain: "look-like-e8819.firebaseapp.com",
+      projectId: "look-like-e8819",
+      storageBucket: "look-like-e8819.appspot.com",
+      messagingSenderId: "976652364108",
+      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+      measurementId: "G-RPHVKH612W"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const postsContainer = document.getElementById("posts-container");
+    let currentUserId = null;
+
+    onAuthStateChanged(auth, (user) => { if(user) currentUserId = user.uid; });
+
+    async function fetchPosts() {
+      const postsRef = collection(db, "posts");
+      const querySnapshot = await getDocs(postsRef);
+      const posts = [];
+      querySnapshot.forEach(docSnap => {
+        const post = docSnap.data();
+        post.id = docSnap.id;
+        posts.push(post);
+      });
+      displayPosts(posts);
+    }
+
+    function displayPosts(posts) {
+      postsContainer.innerHTML = '';
+      posts.forEach(post => {
+        const postCard = document.createElement('div');
+        postCard.className = 'post-card';
+
+        postCard.innerHTML = `
+          <div class="post-header">
+            <img src="${post.userAvatar || 'placeholder-avatar.png'}" alt="User Avatar">
+            <div class="username">${post.username || 'Anonymous'}</div>
+          </div>
+          <div class="post-content">
+            <p>${post.caption || ''}</p>
+            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post Image">` : ''}
+          </div>
+          <div class="post-actions">
+            <div class="like-btn" data-post-id="${post.id}">
+              <i class="fas fa-thumbs-up"></i> <span>${post.likes || 0}</span>
+            </div>
+          </div>
+        `;
+
+        // Image modal functionality
+        const imgEl = postCard.querySelector('.post-content img');
+        if(imgEl) {
+          imgEl.addEventListener('click', () => {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            modal.style.display = 'flex';
+            modalImg.src = imgEl.src;
+          });
+        }
+
+        // Close modal on click
+        const modal = document.getElementById('imageModal');
+        modal.addEventListener('click', () => { modal.style.display = 'none'; });
+
+        // Like toggle
+        const likeBtn = postCard.querySelector('.like-btn');
+        likeBtn.addEventListener('click', async () => {
+          if(!currentUserId) { alert('Please log in to like posts.'); return; }
+          const postDocRef = doc(db, "posts", post.id);
+
+          const liked = likeBtn.classList.contains('liked');
+          if(liked) {
+            await updateDoc(postDocRef, { likes: increment(-1) });
+            likeBtn.classList.remove('liked');
+            likeBtn.querySelector('span').textContent = parseInt(likeBtn.querySelector('span').textContent)-1;
+          } else {
+            await updateDoc(postDocRef, { likes: increment(1) });
+            likeBtn.classList.add('liked');
+            likeBtn.querySelector('span').textContent = parseInt(likeBtn.querySelector('span').textContent)+1;
+          }
+        });
+
+        postsContainer.appendChild(postCard);
+      });
+    }
+
+    fetchPosts();
+  </script>
+</body>
+</html>
