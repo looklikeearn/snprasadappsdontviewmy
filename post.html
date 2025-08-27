@@ -95,26 +95,33 @@
   const storage = getStorage(app);
 
   let currentUser = null;
+
   onAuthStateChanged(auth, user => {
     if(user) currentUser = user;
-    else alert("Please log in to upload posts.");
+    else window.location.href = "login.html"; // Redirect if not logged in
   });
 
   const uploadBtn = document.getElementById("uploadBtn");
+
   uploadBtn.addEventListener('click', async () => {
     if(!currentUser) return;
+
+    uploadBtn.disabled = true;  // Disable button immediately
+    uploadBtn.textContent = "Uploading...";
 
     const fileInput = document.getElementById("postImage");
     const caption = document.getElementById("caption").value.trim();
 
     if(fileInput.files.length === 0) {
       alert("Please select an image.");
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "Upload";
       return;
     }
 
     const file = fileInput.files[0];
     const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${file.name}`);
-    
+
     try {
       await uploadBytes(storageRef, file);
       const imageUrl = await getDownloadURL(storageRef);
@@ -130,12 +137,16 @@
       });
 
       alert("Post uploaded successfully!");
-      document.getElementById("postImage").value = '';
+      fileInput.value = '';
       document.getElementById("caption").value = '';
+      uploadBtn.textContent = "Upload";
+      uploadBtn.disabled = false;
 
     } catch(error) {
       console.error("Upload failed:", error);
       alert("Failed to upload post. Try again.");
+      uploadBtn.textContent = "Upload";
+      uploadBtn.disabled = false;
     }
   });
 </script>
