@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Post</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: linear-gradient(to bottom, #ff9933, #ffffff, #138808); /* India flag colors */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .upload-container {
+    background: rgba(255,255,255,0.95);
+    padding: 25px 20px;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 450px;
+  }
+
+  h2 {
+    text-align: center;
+    color: #222;
+  }
+
+  input[type="file"], textarea {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+  }
+
+  textarea {
+    resize: none;
+    height: 100px;
+  }
+
+  button {
+    margin-top: 15px;
+    width: 100%;
+    background-color: #ff9933;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #e68a00;
+  }
+</style>
+</head>
+<body>
+
+<div class="upload-container">
+  <h2>Upload a Post</h2>
+  <input type="file" id="postImage" accept="image/*">
+  <textarea id="caption" placeholder="Write something..."></textarea>
+  <button id="uploadBtn">Upload</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+    authDomain: "look-like-e8819.firebaseapp.com",
+    projectId: "look-like-e8819",
+    storageBucket: "look-like-e8819.appspot.com",
+    messagingSenderId: "976652364108",
+    appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+    measurementId: "G-RPHVKH612W"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const storage = getStorage(app);
+
+  let currentUser = null;
+  onAuthStateChanged(auth, user => {
+    if(user) currentUser = user;
+    else alert("Please log in to upload posts.");
+  });
+
+  const uploadBtn = document.getElementById("uploadBtn");
+  uploadBtn.addEventListener('click', async () => {
+    if(!currentUser) return;
+
+    const fileInput = document.getElementById("postImage");
+    const caption = document.getElementById("caption").value.trim();
+
+    if(fileInput.files.length === 0) {
+      alert("Please select an image.");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${file.name}`);
+    
+    try {
+      await uploadBytes(storageRef, file);
+      const imageUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, "posts"), {
+        userId: currentUser.uid,
+        username: currentUser.displayName || "Anonymous",
+        userAvatar: currentUser.photoURL || "placeholder-avatar.png",
+        imageUrl: imageUrl,
+        caption: caption,
+        likes: 0,
+        timestamp: Date.now()
+      });
+
+      alert("Post uploaded successfully!");
+      document.getElementById("postImage").value = '';
+      document.getElementById("caption").value = '';
+
+    } catch(error) {
+      console.error("Upload failed:", error);
+      alert("Failed to upload post. Try again.");
+    }
+  });
+</script>
+
+</body>
+</html>
