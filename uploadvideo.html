@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Video</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }
-        header { background-color: #ff0000; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);  }
+        header { background: linear-gradient(to right, #fd7f00, #ffffff, #1aff05);  color: rgb(40, 2, 255); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; }
         .container { padding: 20px; max-width: 600px; margin: auto; }
         input, button, select, textarea { margin-bottom: 10px; padding: 10px; width: 100%; box-sizing: border-box; }
         video { width: 100%; height: auto; margin-bottom: 10px; }
         canvas { display: none; }
-        footer { position: fixed; bottom: 0; width: 100%; background-color: #ff0000; padding: 10px; display: flex; justify-content: space-around; }
-        footer a { color: white; text-decoration: none; }
+        footer { position: fixed; bottom: 0; width: 100%; background: linear-gradient(to right, #ff8000, #FFFFFF, #18f504);  padding: 10px; display: flex; justify-content: space-around; }
+        footer a { color: rgb(68, 0, 255); text-decoration: none; }
         .progress-bar { width: 100%; background-color: #ddd; border-radius: 5px; overflow: hidden; margin-top: 10px; }
         .progress-bar-inner { height: 20px; width: 0%; background-color: #4caf50; text-align: center; color: white; line-height: 20px; }
 
@@ -291,7 +291,7 @@ async function uploadVideo(user) {
             });
 
             statusElement.textContent = `Video uploaded successfully with RegNo: ${regNo}!`;
-            window.location.href = "success.html";
+            window.location.href = "index.html";
         }
     );
 }
