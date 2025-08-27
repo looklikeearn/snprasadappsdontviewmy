@@ -1,327 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="UaFubk1YNidzeTfffBCv4EsgdTjKf8cfUp3pCz5I2Jc" />
-    <meta name="description" content="Share your videos with friends, family, and the world – and get rewarded! Post your content, gain 100 subscribers and 1000 views, and start earning. Join Look Like to showcase your talent and make every view count!"
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian Media - Earn</title>
+  <meta name="description" content="Indian Media is a tricolor-themed video platform. Earn rewards by uploading videos, gaining 100 subscribers and 1000 views. Show your talent and make every view count!">
 
-This keeps the friendly, community-focused feel of YouTube while highlighting the earning potential on Look Like Earn. Let me know if you’d like more ideas!">
-    <meta name="twitter:title" content="Look Like Earn - Unlock Your Online Earning Now">
-    <meta name="twitter:description" content="#EarnWithVideos! Just 100 #Subscribers + 1000 #Views to start earning cash. Join Look Like and make every view count! #MakeMoneyOnline #ContentCreator #EarnMoney #ViralVideos"
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="indianmedia.png" />
 
-Including hashtags like #EarnWithVideos, #ContentCreator, and #ViralVideos helps target a broader audience interested in making money with their videos. You’re on the right track!">
-    <title>LookLike - Earn</title>
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <meta name="description" content="LookLike is a video platform where you can earn money by watching and uploading videos. Get paid when you reach 100 subscribers and 1,000 views. Join now and start earning with your videos!">
+  <style>
+    body { 
+      font-family: Arial, sans-serif;
+      margin: 0; 
+      padding: 0; 
+      background-color: #fff;
+      padding-bottom: 60px; 
+    }
 
-    <!-- Font Awesome CDN for Icons -->
-    <link rel="icon" type="image/x-icon" href="looklike.png.jpg" />
-    <link rel="shortcut icon" type="x-icon" href="looklike.png.jpg">
-    <link rel="me" href="https://www.instagram.com/looklikeearn/" type="text/html">
-    <link rel="me" href="https://www.youtube.com/@LookLikeoffice" type="text/html">
-    <link rel="me" href="https://x.com/looklikeearn" type="text/html">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   
-    <style>
+    /* Header */
+    header { 
+      background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+      color: #000; 
+      padding: 6px 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
 
-body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f9f9f9; 
-            overflow-x: hidden; /* Prevent horizontal scroll when menu is open */
-            padding-bottom: 60px; /* Space for bottom navigation */
-        }
-        header { 
-            background-color: #ffffff; 
-            color: black; 
-            padding: 3px 8px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 1000; /* Ensure header is above other elements */
-        }
-        h1 { 
-            margin: 0; 
-            font-size: 24px; 
-        }
-        .logo .look {
-            color: #8B4513; /* SaddleBrown */
-            font-weight: bold;
-        }
-        .logo .like {
-            color: #FF0000; /* Red */
-            font-weight: bold;
-        }
-        /* Search icon styles */
-        .search-icon {
-            font-size: 24px;
-            cursor: pointer;
-            color: #000;
-            margin-left: 16px; /* Space from logo */
-            transition: color 0.2s ease;
-        }
-        .search-icon:hover {
-            color: #FF0000; /* Change color on hover */
-        }
+    .logo h1 { 
+      margin: 0; 
+      font-size: 22px; 
+      font-weight: bold;
+    }
+    .logo .indian { color: #FF9933; }
+    .logo .media { color: #138808; }
+    .logo .chakra { color: #000080; font-size: 18px; }
 
-        .video-list { 
-            padding: 80px 20px 20px; /* Top padding to account for fixed header */
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-        }
-        .video-item { 
-            display: flex; 
-            flex-direction: column; 
-            cursor: pointer; 
-            border: 1px solid #111111; 
-            border-radius: 8px; 
-            overflow: hidden; 
-            background-color: #f1d6d660; 
-            transition: box-shadow 0.3s ease;
-        }
-        .video-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .video-thumbnail {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            overflow: hidden;
-        }
-        .video-thumbnail img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-        .video-info { 
-            padding: 10px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 5px; 
-        }
-        .video-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #000;
-    display: -webkit-box;          /* This makes the text behave like a flex container */
-    -webkit-line-clamp: 2;         /* Limits the number of lines to 2 */
-    -webkit-box-orient: vertical;  /* Specifies the box direction */
-    overflow: hidden;              /* Hides the content that overflows */
-    text-overflow: ellipsis;       /* Adds the '...' when the text overflows */
-}
+    /* Search */
+    .search-icon {
+      font-size: 20px;
+      cursor: pointer;
+      color: #000;
+      margin: 0 12px;
+      transition: transform 0.2s ease;
+    }
+    .search-icon:hover {
+      transform: scale(1.2);
+      color: #000080;
+    }
 
-        .video-meta { 
-            font-size: 14px; 
-            color: #606060; 
-        }
+    /* Menu Button */
+    .menu-button {
+      font-size: 24px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      outline: none;
+      color: #000080;
+    }
 
-        /* Right-side Navigation Menu Styles */
-        .nav-menu {
-            position: fixed;
-            top: 0;
-            right: -250px; /* Hidden by default */
-            width: 250px;
-            height: 100%;
-            background-color: #ffffff;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
-            z-index: 1100; /* Above header */
-            display: flex;
-            flex-direction: column;
-            padding-top: 60px; /* Space for header */
-        }
-        .nav-menu.active {
-            right: 0;
-        }
-        .nav-menu a {
-            padding: 15px 20px;
-            text-decoration: none;
-            color: #000;
-            font-size: 18px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s ease;
-        }
-        .nav-menu a:hover {
-            background-color: #f9f9f9;
-        }
+    /* Video list */
+    .video-list { 
+      padding: 80px 20px 20px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px; 
+    }
+    .video-item { 
+      display: flex; 
+      flex-direction: column; 
+      border: 2px solid #138808; 
+      border-radius: 10px; 
+      overflow: hidden; 
+      background: #fff8f0; 
+      transition: transform 0.3s ease;
+    }
+    .video-item:hover {
+      transform: scale(1.02);
+    }
+    .video-thumbnail img { 
+      width: 100%; 
+      height: auto;
+    }
+    .video-info { padding: 10px; }
+    .video-title { font-size: 16px; font-weight: bold; color: #000; }
+    .video-meta { font-size: 14px; color: #606060; }
 
-        /* Overlay Styles */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.3);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease;
-            z-index: 1050; /* Between header and nav-menu */
-        }
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+    /* Navigation Menu */
+    .nav-menu {
+      position: fixed;
+      top: 0;
+      right: -250px;
+      width: 250px;
+      height: 100%;
+      background: linear-gradient(#FF9933, #fff, #138808);
+      transition: right 0.3s ease;
+      z-index: 1100;
+      padding-top: 60px;
+    }
+    .nav-menu.active { right: 0; }
+    .nav-menu a {
+      padding: 15px 20px;
+      text-decoration: none;
+      color: #000;
+      font-size: 18px;
+      display: block;
+    }
+    .nav-menu a:hover {
+      background-color: rgba(0,0,0,0.1);
+    }
 
-        /* Menu Button Styles */
-        .menu-button {
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            outline: none;
-        }
+    /* Overlay */
+    .overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 1050;
+    }
+    .overlay.active { opacity: 1; visibility: visible; }
 
-        /* Bottom Navigation Styles */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #ffffff;
-            box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000; /* Above main content */
-        }
-        .bottom-nav a {
-            text-decoration: none;
-            color: #606060;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: color 0.2s ease;
-        }
-        .bottom-nav a.active,
-        .bottom-nav a:hover {
-            color: #FF0000; /* LookLike red color */
-        }
-        .bottom-nav a i {
-            font-size: 20px;
-            margin-bottom: 2px;
-        }
-        .channel-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 5px;
-        }
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: linear-gradient(to right, #FF9933, #fff, #138808);
+      display: flex; justify-content: space-around; align-items: center;
+      z-index: 1000;
+    }
+    .bottom-nav a {
+      text-decoration: none;
+      color: #000;
+      font-size: 12px;
+      display: flex; flex-direction: column;
+      align-items: center;
+      font-weight: bold;
+    }
+    .bottom-nav a.active,
+    .bottom-nav a:hover {
+      color: #000080;
+    }
+    .bottom-nav a i { font-size: 20px; margin-bottom: 2px; }
 
-        .channel-logo {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        /* Mobile styles */
-        @media (max-width: 600px) {
-            header {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 10px;
-            }
-            /* Removed search-bar styles */
-            .menu-button {
-                align-self: flex-end;
-            }
-        }
-
-        .video-thumbnail {
-    position: relative;
-}
-
-.video-duration {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    font-size: 12px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-weight: bold;
-    z-index: 10;
-}
-
-/* Add this style for the regNo in the top-right corner */
-.regNo {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    font-size: 12px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-weight: bold;
-    z-index: 10;
-}
-
-        </style>
-
-
+    /* Duration & RegNo */
+    .video-thumbnail { position: relative; }
+    .video-duration, .regNo {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.7);
+      color: #fff; font-size: 12px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-weight: bold;
+    }
+    .regNo { top: 8px; bottom: auto; }
+  </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">
-        <h1><span class="look">Look</span> <span class="like">Like</span></h1>
-    </div>
-    <!-- Search Icon -->
-    <a href="search.html" class="search-icon">
-        <i class="fas fa-search"></i>
-    </a>
-    <button class="menu-button" id="menu-button">&#9776;</button> <!-- Hamburger Icon -->
+  <div class="logo">
+    <h1>
+      <span class="indian">Indian</span> 
+      <span class="media">Media</span> 
+      <i class="fa-solid fa-circle chakra"></i>
+    </h1>
+  </div>
+  <!-- Center Search -->
+  <a href="search.html" class="search-icon">
+    <i class="fas fa-search"></i>
+  </a>
+  <!-- Right Menu Btn -->
+  <button class="menu-button" id="menu-button">&#9776;</button>
 </header>
 
-<!-- Right-side Navigation Menu -->
+<!-- Right Navigation -->
 <nav class="nav-menu" id="nav-menu">
-    <a href="competition.html">Competition</a>
-    <a href="poll.html">Vote</a>
-    <a href="live.html">Live</a>
-    <a href="customer.html">Customer Support</a>
-    <a href="subscription.html">Subscriptions</a>
+  <a href="competition.html">Competition</a>
+  <a href="poll.html">Vote</a>
+  <a href="live.html">Live</a>
+  <a href="customer.html">Support</a>
+  <a href="subscription.html">Subscriptions</a>
 </nav>
 
-<!-- Overlay -->
 <div class="overlay" id="overlay"></div>
 
-<section class="video-list" id="video-list">
-    <!-- Video thumbnails will be dynamically inserted here -->
-</section>
+<section class="video-list" id="video-list"></section>
 
-<!-- Bottom Navigation Bar -->
+<!-- Bottom Navigation -->
 <nav class="bottom-nav">
-    <a href="index.html" class="active">
-        <i class="fas fa-home"></i>
-        <span>Home</span>
-    </a>
-    <a href="woow.html">
-        <i class="fas fa-video"></i>
-        <span>Shorts</span>
-    </a>
-    <a href="upload.html">
-        <i class="fas fa-upload"></i>
-        <span>Upload</span>
-    </a>
-    <a href="profile.html">
-        <i class="fas fa-user"></i>
-        <span>Profile</span>
-    </a>
+  <a href="index.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
+  <a href="woow.html"><i class="fas fa-video"></i><span>Shorts</span></a>
+  <a href="upload.html"><i class="fas fa-upload"></i><span>Upload</span></a>
+  <a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
 </nav>
 
+<script>
+  // Navigation Menu JS
+  const menuButton = document.getElementById('menu-button');
+  const navMenu = document.getElementById('nav-menu');
+  const overlay = document.getElementById('overlay');
+  menuButton.addEventListener('click', () => {
+    navMenu.classList.add('active');
+    overlay.classList.add('active');
+  });
+  overlay.addEventListener('click', () => {
+    navMenu.classList.remove('active');
+    overlay.classList.remove('active');
+  });
+</script>
 
+</body>
+</html>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
@@ -456,34 +355,6 @@ onAuthStateChanged(auth, user => {
     }
 });
 
-// Navigation Menu Functionality
-const menuButton = document.getElementById('menu-button');
-    const navMenu = document.getElementById('nav-menu');
-    const overlay = document.getElementById('overlay');
-
-    // Function to open the navigation menu
-    function openMenu() {
-        navMenu.classList.add('active');
-        overlay.classList.add('active');
-    }
-
-    // Function to close the navigation menu
-    function closeMenu() {
-        navMenu.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-
-    // Event listener for menu button
-    menuButton.addEventListener('click', openMenu);
-
-    // Event listener for overlay click
-    overlay.addEventListener('click', closeMenu);
-
-    // Optional: Close menu when a link is clicked
-    const navLinks = navMenu.querySelectorAll('a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', closeMenu);
-    });
 </script>
 </body>
 </html>
