@@ -1,155 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Videos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f9f9f9; 
-        }
-        header { 
-            background-color: #ff0000; 
-            color: white; 
-            padding: 10px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        h1 { 
-            margin: 0; 
-        }
-        .container { 
-            padding: 20px; 
-            max-width: 800px; 
-            margin: auto; 
-        }
-        .search-bar { 
-            display: flex; 
-            align-items: center; 
-            margin-bottom: 20px; 
-        }
-        input[type="text"] { 
-            flex: 1; 
-            padding: 10px; 
-            font-size: 16px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px 0 0 8px; 
-            outline: none; 
-        }
-        .search-bar button { 
-            background-color: #ff0000; 
-            color: white; 
-            border: none; 
-            padding: 10px 15px; 
-            cursor: pointer; 
-            font-size: 18px; 
-            border-radius: 0 8px 8px 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        .search-bar button:hover {
-            background-color: #cc0000;
-        }
-        .video-card { 
-            display: flex; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            padding: 10px; 
-            background-color: white; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-            text-decoration: none; 
-            color: inherit;
-        }
-        .video-card:hover {
-            background-color: #f1f1f1;
-        }
-        .video-card img { 
-            width: 120px; 
-            height: 80px; 
-            object-fit: cover; 
-            border-radius: 4px; 
-        }
-        .video-info { 
-            margin-left: 10px; 
-        }
-        .video-info h3 { 
-            margin: 0; 
-            font-size: 18px; 
-            color: #333; 
-        }
-        footer { 
-            position: fixed; 
-            bottom: 0; 
-            width: 100%; 
-            background-color: #ff0000; 
-            padding: 10px; 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center;
-        }
-        footer a { 
-            color: white; 
-            text-decoration: none; 
-            font-size: 18px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-        footer a:hover {
-            color: #ddd;
-        }
-        footer i {
-            font-size: 22px;
-            margin-bottom: 4px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Videos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(to right, #FF9933, #fff, #138808);/* Navy Blue (Ashoka Chakra tone) */
+      color: rgb(51, 5, 158);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    header button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    header button:hover {
+      transform: scale(1.2);
+      color: #ddd;
+    }
+
+    .container {
+      flex: 1;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 50px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .search-bar input[type="text"] {
+      flex: 1;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: none;
+      outline: none;
+      border-radius: 50px 0 0 50px;
+    }
+
+    .search-bar button {
+      background: #0a5eb7; /* Chakra Blue */
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 18px;
+      border-radius: 0 50px 50px 0;
+      transition: background 0.3s;
+    }
+
+    .search-bar button:hover {
+      background: #083a75;
+    }
+
+    .video-card {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 1);
+    }
+
+    .video-card img {
+      width: 140px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .video-info {
+      margin-left: 12px;
+    }
+
+    .video-info h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(to right, #FF9933, #fff, #138808);
+      padding: 10px 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    footer a {
+      color: rgb(2, 4, 116);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: color 0.2s ease;
+    }
+
+    footer a:hover {
+      color: #ff9933; /* Saffron */
+    }
+
+    footer i {
+      font-size: 22px;
+      margin-bottom: 3px;
+    }
+  </style>
 </head>
 <body>
-
-<header>
+  <header>
     <h1>Search Videos</h1>
-    <button id="micButton" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
-        <i class="fas fa-microphone"></i>
+    <button id="micButton">
+      <i class="fas fa-microphone"></i>
     </button>
-</header>
+  </header>
 
-<div class="container">
+  <div class="container">
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search videos by title, tags, or description..." />
-        <button id="searchButton"><i class="fas fa-search"></i></button>
+      <input type="text" id="searchInput" placeholder="Search videos by title, tags, or description..." />
+      <button id="searchButton"><i class="fas fa-search"></i></button>
     </div>
     <div id="results"></div>
-</div>
+  </div>
 
-<footer>
+  <footer>
     <a href="index.html"><i class="fas fa-home"></i> Home</a>
     <a href="upload.html"><i class="fas fa-upload"></i> Upload</a>
     <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-</footer>
+  </footer>
 
-<script type="module">
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
-  authDomain: "look-like-e8819.firebaseapp.com",
-  projectId: "look-like-e8819",
-  storageBucket: "look-like-e8819.appspot.com",
-  messagingSenderId: "976652364108",
-  appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
-  measurementId: "G-RPHVKH612W"
+      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+      authDomain: "look-like-e8819.firebaseapp.com",
+      projectId: "look-like-e8819",
+      storageBucket: "look-like-e8819.appspot.com",
+      messagingSenderId: "976652364108",
+      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+      measurementId: "G-RPHVKH612W"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -158,91 +200,84 @@
     const micButton = document.getElementById("micButton");
 
     async function fetchVideos() {
-        const videosRef = collection(db, "videos");
-        const querySnapshot = await getDocs(videosRef);
-        const videos = [];
-
-        querySnapshot.forEach(doc => {
-            const video = doc.data();
-            video.id = doc.id; // Include the document ID for redirection
-            videos.push(video);
-        });
-
-        return videos;
+      const videosRef = collection(db, "videos");
+      const querySnapshot = await getDocs(videosRef);
+      const videos = [];
+      querySnapshot.forEach(doc => {
+        const video = doc.data();
+        video.id = doc.id;
+        videos.push(video);
+      });
+      return videos;
     }
 
     async function searchVideos(queryText) {
-        const videos = await fetchVideos();
-        const lowerQuery = queryText.toLowerCase();
+      const videos = await fetchVideos();
+      const lowerQuery = queryText.toLowerCase();
 
-        const filteredVideos = videos.filter(video => {
-            return (
-                (video.title && video.title.toLowerCase().includes(lowerQuery)) ||
-                (video.description && video.description.toLowerCase().includes(lowerQuery)) ||
-                (video.tags && video.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
-            );
-        });
+      const filteredVideos = videos.filter(video => {
+        return (
+          (video.title && video.title.toLowerCase().includes(lowerQuery)) ||
+          (video.description && video.description.toLowerCase().includes(lowerQuery)) ||
+          (video.tags && video.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
+        );
+      });
 
-        displayResults(filteredVideos);
+      displayResults(filteredVideos);
     }
 
     function displayResults(videos) {
-        resultsDiv.innerHTML = "";
+      resultsDiv.innerHTML = "";
+      if (videos.length === 0) {
+        resultsDiv.textContent = "No videos found.";
+        return;
+      }
 
-        if (videos.length === 0) {
-            resultsDiv.textContent = "No videos found.";
-            return;
-        }
+      videos.forEach(video => {
+        const videoLink = document.createElement("a");
+        videoLink.href = `video.html?videoId=${video.id}`;
+        videoLink.className = "video-card";
 
-        videos.forEach(video => {
-            const videoLink = document.createElement("a");
-            videoLink.href = `video.html?videoId=${video.id}`;
-            videoLink.className = "video-card";
+        const thumbnail = document.createElement("img");
+        thumbnail.src = video.thumbnailUrl || "placeholder.jpg";
+        videoLink.appendChild(thumbnail);
 
-            const thumbnail = document.createElement("img");
-            thumbnail.src = video.thumbnailUrl || "placeholder.jpg"; // Placeholder if no thumbnail
-            videoLink.appendChild(thumbnail);
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "video-info";
 
-            const infoDiv = document.createElement("div");
-            infoDiv.className = "video-info";
+        const title = document.createElement("h3");
+        title.textContent = video.title;
+        infoDiv.appendChild(title);
 
-            const title = document.createElement("h3");
-            title.textContent = video.title;
-            infoDiv.appendChild(title);
-
-            videoLink.appendChild(infoDiv);
-            resultsDiv.appendChild(videoLink);
-        });
+        videoLink.appendChild(infoDiv);
+        resultsDiv.appendChild(videoLink);
+      });
     }
 
-    // Event Listeners
     searchInput.addEventListener("input", () => {
-        const queryText = searchInput.value.trim();
-        if (queryText) {
-            searchVideos(queryText);
-        } else {
-            resultsDiv.innerHTML = ""; // Clear results if input is empty
-        }
+      const queryText = searchInput.value.trim();
+      if (queryText) {
+        searchVideos(queryText);
+      } else {
+        resultsDiv.innerHTML = "";
+      }
     });
 
-    // Voice Search Feature
     micButton.addEventListener("click", () => {
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = "en-US";
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.start();
 
-        recognition.start();
+      recognition.onresult = event => {
+        const spokenText = event.results[0][0].transcript;
+        searchInput.value = spokenText;
+        searchVideos(spokenText);
+      };
 
-        recognition.onresult = event => {
-            const spokenText = event.results[0][0].transcript;
-            searchInput.value = spokenText;
-            searchVideos(spokenText);
-        };
-
-        recognition.onerror = () => {
-            alert("Sorry, voice search failed. Please try again.");
-        };
+      recognition.onerror = () => {
+        alert("Sorry, voice search failed. Please try again.");
+      };
     });
-</script>
-
+  </script>
 </body>
 </html>
