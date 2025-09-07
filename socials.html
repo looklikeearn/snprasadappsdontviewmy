@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Social Chat 10 minutes</title>
+  <style>
+    :root{
+      --bg:#000000; --card:#111827; --muted:#ffc400; --accent1:#60a5fa; --accent2:#34d399;
+      --me-bg:#45463e; --me-text:#fa0202;
+    }
+    *{box-sizing:border-box}
+    body,html{margin:0;height:100%;background:var(--bg);color:#f9fafb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    .container{max-width:900px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+    header{padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2bff00}
+    header h1{margin:0;font-size:18px;color:#e5e7eb}
+    header .status{font-size:13px;color:var(--muted)}
+    .messages{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+    .msg{max-width:75%;padding:10px 14px;border-radius:12px;background:#1f2937;font-size:14px;line-height:1.4}
+    .msg.me{align-self:flex-end;background:var(--me-bg);color:var(--me-text)}
+    .meta{margin-top:6px;font-size:12px;color:var(--muted)}
+    .composer{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2937;background:#111827}
+    textarea{flex:1;min-height:54px;padding:10px;border-radius:10px;background:#1f2937;color:#f9fafb;border:1px solid #374151;font-size:14px;outline:none;resize:none}
+    button{background:linear-gradient(90deg,var(--accent1),var(--accent2));border:0;padding:10px 16px;border-radius:10px;color:#111;font-weight:600;cursor:pointer}
+    @media(max-width:600px){
+      .msg{max-width:85%}
+      header h1{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Social Chat 10 minutes</h1>
+        <div class="status" id="status">Connecting…</div>
+      </div>
+    </header>
+
+    <div id="messages" class="messages" aria-live="polite"></div>
+
+    <div class="composer">
+      <textarea id="messageInput" placeholder="Type a message (disappears in 10 minutes)" maxlength="700"></textarea>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJVvkrxH-U5YlQMpMpO8LjnBkm8gEmSjU",
+      authDomain: "look-like-e8819.firebaseapp.com",
+      projectId: "look-like-e8819",
+      storageBucket: "look-like-e8819.appspot.com",
+      messagingSenderId: "976652364108",
+      appId: "1:976652364108:web:4fb71e5e6477f31d1b07e9",
+      measurementId: "G-RPHVKH612W"
+    };
+
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+    import {
+      getFirestore, collection, addDoc, doc, deleteDoc,
+      query, where, orderBy, onSnapshot, serverTimestamp, getDocs, limit
+    } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const LIFETIME_MS = 10 * 60 * 1000;
+
+    const messagesEl = document.getElementById('messages');
+    const statusEl = document.getElementById('status');
+    const inputEl = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Session-based identity
+    const userId = crypto.randomUUID();
+    const displayName = "Guest-" + userId.slice(0,5);
+
+    // SEND
+    sendBtn.addEventListener('click', sendMessage);
+    inputEl.addEventListener('keydown', e=>{
+      if(e.key==="Enter" && !e.shiftKey){
+        e.preventDefault(); sendMessage();
+      }
+    });
+
+    async function sendMessage(){
+      const text = inputEl.value.trim();
+      if(!text) return;
+      sendBtn.disabled=true; sendBtn.textContent="…";
+
+      const expiresAt = Date.now() + LIFETIME_MS;
+
+      try{
+        await addDoc(collection(db, 'messages'), {
+          text, name:displayName, userId,
+          createdAt: serverTimestamp(), expiresAt
+        });
+        inputEl.value="";
+      }catch(e){ alert("Send failed"); }
+      sendBtn.disabled=false; sendBtn.textContent="Send";
+    }
+
+    // LISTENER
+    let unsubscribe=null;
+    function startListener(){
+      if(unsubscribe) unsubscribe();
+      const now=Date.now();
+      const q=query(collection(db,'messages'),
+        where('expiresAt','>',now),
+        orderBy('expiresAt','asc'),
+        limit(200));
+      unsubscribe=onSnapshot(q,(snap)=>{
+        const docs=[];
+        snap.forEach(d=>docs.push({id:d.id,...d.data()}));
+        renderMessages(docs);
+      },err=>{ statusEl.textContent="Realtime error"; });
+    }
+
+    function renderMessages(docs){
+      messagesEl.innerHTML="";
+      for(const d of docs){
+        if((d.expiresAt||0)<=Date.now()) continue;
+        const div=document.createElement('div');
+        div.className="msg"+(d.userId===userId?" me":"");
+        div.innerHTML=`
+          <div><strong>${escapeHtml(d.name||"anon")}</strong></div>
+          <div style="margin-top:6px;white-space:pre-wrap">${escapeHtml(d.text)}</div>
+          <div class="meta" data-expires="${d.expiresAt}">
+            ${timeUntil(d.expiresAt)} • auto-deletes
+          </div>`;
+        messagesEl.appendChild(div);
+      }
+      messagesEl.scrollTop=messagesEl.scrollHeight;
+    }
+
+    // countdown update
+    setInterval(()=>{
+      const metas=messagesEl.querySelectorAll('.meta');
+      metas.forEach(meta=>{
+        const exp=parseInt(meta.getAttribute('data-expires'),10);
+        if(exp){ meta.textContent=`${timeUntil(exp)} • auto-deletes`; }
+      });
+    },1000);
+
+    // cleanup old
+    async function cleanup(){
+      try{
+        const now=Date.now();
+        const q=query(collection(db,'messages'),
+          where('expiresAt','<=',now),limit(50));
+        const snap=await getDocs(q);
+        const deletes=[];
+        snap.forEach(docSnap=>{
+          deletes.push(deleteDoc(doc(db,'messages',docSnap.id)).catch(()=>null));
+        });
+        if(deletes.length) await Promise.all(deletes);
+      }catch(e){}
+    }
+    setInterval(cleanup,20000);
+
+    function timeUntil(ms){
+      const diff=Math.max(0,Math.round((ms-Date.now())/1000));
+      const m=Math.floor(diff/60),s=diff%60;
+      return `${m}m ${s}s`;
+    }
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    statusEl.textContent="Connected — "+displayName;
+    startListener();
+  </script>
+</body>
+</html>
